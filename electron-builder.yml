@@ -49,13 +49,13 @@ linux:
   icon: build/app-icon.png
   target:
     - AppImage
-    - snap
     - deb
-  maintainer: electronjs.org
-  category: Utility
+  maintainer: atikursattermondal@gmail.com
+  category: Development
 appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
 publish:
-  provider: generic
-  url: https://example.com/auto-updates
+  provider: github
+  owner: atikur0786
+  repo: focus-fork-app

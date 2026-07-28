@@ -31,6 +31,9 @@ jobs:
       - name: Prepare app config
         env:
           GITHUB_OAUTH_CLIENT_ID: ${{ secrets.GITHUB_OAUTH_CLIENT_ID }}
+        # bash explicitly: the default shell on windows-latest is pwsh, which
+        # cannot parse the [ -n ... ] test below.
+        shell: bash
         run: |
           mkdir -p resources
           if [ -n "$GITHUB_OAUTH_CLIENT_ID" ]; then
@@ -103,3 +106,5 @@ jobs:
           files: |
             release-artifacts/**/*
           generate_release_notes: true
+          # Tags like v0.1.0-beta.1 are marked pre-release automatically.
+          prerelease: ${{ contains(github.ref_name, '-') }}
