@@ -117,7 +117,7 @@ function ModelRow({
           role="tooltip"
           className="pointer-events-none absolute left-2 right-2 top-full z-30 mt-1 rounded-md border border-border bg-surface px-2 py-1.5 text-[11px] text-text-main shadow-md"
         >
-          Paid subscription required. Upgrade in Usage &amp; Billing to unlock this model.
+          Not included in the free tier. Add your own API key in Settings to use any model — free.
         </div>
       )}
     </div>
@@ -267,10 +267,10 @@ export function ModelSelector({
         {showUpgrade && onUpgradeClick && (
           <div className="shrink-0 flex items-center justify-between gap-2 border-b border-border bg-surface-hover/50 px-3 py-2">
             <p className="text-xs text-text-secondary">
-              <span className="font-medium text-text-main">Unlock all models</span> on Pro
+              <span className="font-medium text-text-main">Want every model now?</span> Add your own API key — free
             </p>
             <button type="button" onClick={onUpgradeClick} className="btn-primary px-2.5 py-1 text-[11px]">
-              Upgrade
+              Set up
             </button>
           </div>
         )}

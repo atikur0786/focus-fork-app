@@ -9,6 +9,10 @@ import { humanizeError } from '../../lib/user-errors'
 import { useTabActivityStore } from '../../store/useTabActivityStore'
 import clsx from 'clsx'
 
+/** Flip to true once the payment provider is live. */
+const SUBSCRIPTIONS_ENABLED = false
+const SUPPORT_EMAIL = 'atikursattermondal@gmail.com'
+
 interface UsageHistoryItem {
   model: string
   input_tokens: number
@@ -124,6 +128,16 @@ export function UsagePage() {
   }, [backendConnected])
 
   const startCheckout = async (planCode: 'pro' | 'max' | 'credits') => {
+    // Paid plans are not open yet: rather than sending people into an
+    // unfinished checkout, collect interest by email. Flip
+    // SUBSCRIPTIONS_ENABLED to true once the payment provider is live.
+    if (!SUBSCRIPTIONS_ENABLED) {
+      const label = planCode === 'credits' ? 'extra credits' : planCode === 'max' ? 'the Max plan' : 'the Pro plan'
+      setBillingMessage(
+        `Paid plans are not open yet — FocusFork is in beta and everything works free with your own API key. Want ${label} when it launches? Email me and I'll set you up first.`
+      )
+      return
+    }
     try {
       setCheckoutLoading(planCode)
       setBillingMessage(null)
@@ -140,6 +154,13 @@ export function UsagePage() {
       setCheckoutLoading(null)
     }
   }
+
+  const emailAboutPlans = (subject: string) =>
+    void window.api.openExternal(
+      `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(
+        "Hi Atikur,\n\nI'm using the FocusFork beta and I'd like to know when paid plans go live.\n\n"
+      )}`
+    )
 
   const dailyUsageData = useMemo(() => {
     const days: { day: string; tokens: number }[] = []
@@ -184,7 +205,7 @@ export function UsagePage() {
             <div>
               <h1 className="font-serif text-[25px] font-medium tracking-tight">Usage & Billing</h1>
               <p className="text-[13px] text-text-muted mt-1">
-                Track monthly limits, buy extra credits, and review recent AI activity.
+                Track monthly limits and review recent AI activity.
               </p>
             </div>
             <button
@@ -247,22 +268,41 @@ export function UsagePage() {
               <div className="text-[12px] text-text-muted mt-1">
                 {planInfo.status || usageInfo.subscription_status || 'active'}
               </div>
-              <div className="flex gap-2 mt-3">
-                <button
-                  disabled={checkoutLoading !== null || !backendConnected}
-                  onClick={() => void startCheckout('pro')}
-                  className="btn-primary text-[11.5px] px-3 py-1.5"
-                >
-                  {checkoutLoading === 'pro' ? 'Opening…' : 'Upgrade'}
-                </button>
-                <button
-                  disabled={checkoutLoading !== null || !backendConnected}
-                  onClick={() => void startCheckout('credits')}
-                  className="btn-secondary text-[11.5px] px-3 py-1.5"
-                >
-                  {checkoutLoading === 'credits' ? 'Opening…' : 'Buy credits'}
-                </button>
-              </div>
+              {SUBSCRIPTIONS_ENABLED ? (
+                <div className="flex gap-2 mt-3">
+                  <button
+                    disabled={checkoutLoading !== null || !backendConnected}
+                    onClick={() => void startCheckout('pro')}
+                    className="btn-primary text-[11.5px] px-3 py-1.5"
+                  >
+                    {checkoutLoading === 'pro' ? 'Opening…' : 'Upgrade'}
+                  </button>
+                  <button
+                    disabled={checkoutLoading !== null || !backendConnected}
+                    onClick={() => void startCheckout('credits')}
+                    className="btn-secondary text-[11.5px] px-3 py-1.5"
+                  >
+                    {checkoutLoading === 'credits' ? 'Opening…' : 'Buy credits'}
+                  </button>
+                </div>
+              ) : (
+                <div className="mt-3">
+                  <div className="inline-flex items-center gap-1.5 rounded-full border border-active/30 bg-active-soft px-2.5 py-1 text-[11px] text-active-text">
+                    <span className="h-1.5 w-1.5 rounded-full bg-active" />
+                    Paid plans coming soon
+                  </div>
+                  <p className="text-[11.5px] text-text-muted mt-2 leading-relaxed">
+                    Everything works free with your own API key while FocusFork is in beta.
+                  </p>
+                  <button
+                    data-testid="plans-email-btn"
+                    onClick={() => emailAboutPlans('FocusFork: notify me about paid plans')}
+                    className="btn-secondary text-[11.5px] px-3 py-1.5 mt-2.5"
+                  >
+                    Email me when plans launch
+                  </button>
+                </div>
+              )}
               {billingMessage ? <p className="text-[11px] text-text-muted mt-2">{billingMessage}</p> : null}
             </section>
 

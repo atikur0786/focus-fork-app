@@ -905,7 +905,7 @@ export function AIChatPanel({
               onChange={setModel}
               disabled={isLoading}
               billingPlan={billingPlan}
-              onUpgradeClick={() => setView('usage')}
+              onUpgradeClick={() => setView('settings')}
             />
           </div>
 

@@ -393,7 +393,7 @@ export const SettingsPage = () => {
                                 {authMode === 'authenticated-backend' ? (
                                     <span>
                                         Connected to FocusFork. Current plan:{' '}
-                                        <span className="text-text-main font-medium">{planInfo.plan || 'free'}</span>. Pick models in the chat panel; upgrade in Usage &amp; Billing.
+                                        <span className="text-text-main font-medium">{planInfo.plan || 'free'}</span>. Pick models in the chat panel. Paid plans are coming soon — your own API key works free today.
                                     </span>
                                 ) : (
                                     <span>Sign in and connect the backend (banner above) to use subscription models.</span>
