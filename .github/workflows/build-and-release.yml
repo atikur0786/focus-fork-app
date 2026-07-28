@@ -25,7 +25,8 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # @electron/rebuild 4 (node-pty native builds) requires Node >= 22.12.
+          node-version: 22
           cache: npm
 
       - name: Prepare app config
@@ -47,17 +48,20 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # --publish never: on tagged commits electron-builder implicitly tries to
+      # publish to GitHub itself (needs GH_TOKEN). The release job below is the
+      # single publish path.
       - name: Build Linux artifacts
         if: runner.os == 'Linux'
-        run: npm run build:linux
+        run: npm run build:linux -- --publish never
 
       - name: Build Windows artifacts
         if: runner.os == 'Windows'
-        run: npm run build:win
+        run: npm run build:win -- --publish never
 
       - name: Build macOS artifacts
         if: runner.os == 'macOS'
-        run: npm run build:mac
+        run: npm run build:mac -- --publish never
 
       - name: Upload Linux artifacts
         if: runner.os == 'Linux'
