@@ -117,3 +117,17 @@ jobs:
           generate_release_notes: true
           # Tags like v0.1.0-beta.1 are marked pre-release automatically.
           prerelease: ${{ contains(github.ref_name, '-') }}
+
+      # The landing site reads the newest release from the GitHub API and
+      # caches it. Rebuilding right after publishing makes the new version
+      # appear immediately instead of after the cache window. No-ops when the
+      # VERCEL_DEPLOY_HOOK secret is not configured.
+      - name: Refresh the landing site
+        env:
+          DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+        run: |
+          if [ -n "$DEPLOY_HOOK" ]; then
+            curl -fsS -X POST "$DEPLOY_HOOK" > /dev/null && echo "Triggered landing site rebuild."
+          else
+            echo "VERCEL_DEPLOY_HOOK not set — skipping landing rebuild."
+          fi
