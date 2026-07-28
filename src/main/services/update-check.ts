@@ -10,7 +10,10 @@ export interface ReleaseManifest {
   published_at?: string
 }
 
-const GITHUB_RELEASES_URL = 'https://api.github.com/repos/atikur0786/focus-fork-app/releases/latest'
+// Newest release including pre-releases. /releases/latest ignores
+// pre-releases, so during the beta it 404s and the check falls back to the
+// bundled manifest — which would report a phantom update.
+const GITHUB_RELEASES_URL = 'https://api.github.com/repos/atikur0786/focus-fork-app/releases?per_page=1'
 
 function parseVersion(value: string): number[] {
   return value
@@ -71,15 +74,16 @@ async function fetchGitHubRelease(): Promise<ReleaseManifest | null> {
       'User-Agent': 'FocusFork-Desktop'
     }
   })
-  const tag = String(response.data?.tag_name || response.data?.name || '').trim()
-  const notes = String(response.data?.body || 'A new FocusFork release is available.').trim()
-  const downloadUrl = String(response.data?.html_url || '').trim()
+  const release = Array.isArray(response.data) ? response.data[0] : response.data
+  const tag = String(release?.tag_name || release?.name || '').trim()
+  const notes = String(release?.body || 'A new FocusFork release is available.').trim()
+  const downloadUrl = String(release?.html_url || '').trim()
   if (!tag) return null
   return {
     version: tag,
     notes,
     download_url: downloadUrl || undefined,
-    published_at: String(response.data?.published_at || '')
+    published_at: String(release?.published_at || '')
   }
 }
 
