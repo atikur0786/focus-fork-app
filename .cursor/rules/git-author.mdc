@@ -1,0 +1,13 @@
+---
+description: Keep all git commits under the repo owner's GitHub identity
+alwaysApply: true
+---
+
+When creating git commits in this repo, always use:
+
+- Name: Atikur Satter Mondal
+- Email: atikursattermondal@gmail.com
+
+Do not run `git config` globally. Pass author via `-c user.name=... -c user.email=...` on each commit, or set GIT_AUTHOR_* / GIT_COMMITTER_* for the shell session only.
+
+See docs/GIT_AUTHOR.md.

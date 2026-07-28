@@ -1,0 +1,169 @@
+{
+  "name": "focusfork-extension",
+  "displayName": "FocusFork",
+  "description": "FocusFork workflow layer for Code OSS core.",
+  "version": "0.0.1",
+  "publisher": "focusfork",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "onView:focusfork.discoverIssues",
+    "onView:focusfork.aiAssistant",
+    "onView:focusfork.workflow",
+    "onView:focusfork.contributions",
+    "onCommand:focusfork.refreshSession",
+    "onCommand:focusfork.openDiscoverIssues",
+    "onCommand:focusfork.openAI",
+    "onCommand:focusfork.quickChat",
+    "onCommand:focusfork.refreshWorkflow",
+    "onCommand:focusfork.setupAuth",
+    "onCommand:focusfork.forkRepository",
+    "onCommand:focusfork.cloneRepository",
+    "onCommand:focusfork.runTests",
+    "onCommand:focusfork.commitAndPush",
+    "onCommand:focusfork.createPullRequest"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "focusfork.refreshSession",
+        "title": "FocusFork: Refresh Session"
+      },
+      {
+        "command": "focusfork.openDiscoverIssues",
+        "title": "FocusFork: Open Discover Issues"
+      },
+      {
+        "command": "focusfork.openAI",
+        "title": "FocusFork: Open AI Assistant"
+      },
+      {
+        "command": "focusfork.quickChat",
+        "title": "FocusFork: Quick AI Prompt"
+      },
+      {
+        "command": "focusfork.refreshWorkflow",
+        "title": "FocusFork: Refresh Workflow"
+      },
+      {
+        "command": "focusfork.setupAuth",
+        "title": "FocusFork: Setup Auth Tokens"
+      },
+      {
+        "command": "focusfork.forkRepository",
+        "title": "FocusFork: Fork Repository"
+      },
+      {
+        "command": "focusfork.cloneRepository",
+        "title": "FocusFork: Clone Repository"
+      },
+      {
+        "command": "focusfork.runTests",
+        "title": "FocusFork: Run Tests"
+      },
+      {
+        "command": "focusfork.commitAndPush",
+        "title": "FocusFork: Commit and Push"
+      },
+      {
+        "command": "focusfork.createPullRequest",
+        "title": "FocusFork: Create Pull Request"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "focusfork.quickChat",
+        "key": "cmd+l",
+        "mac": "cmd+l",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "focusfork.quickChat",
+        "key": "ctrl+l",
+        "when": "editorTextFocus"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "focusfork",
+          "title": "FocusFork",
+          "icon": "media/focusfork.svg"
+        }
+      ]
+    },
+    "views": {
+      "focusfork": [
+        {
+          "id": "focusfork.discoverIssues",
+          "name": "Discover Issues",
+          "type": "webview"
+        },
+        {
+          "id": "focusfork.aiAssistant",
+          "name": "AI Assistant",
+          "type": "webview"
+        },
+        {
+          "id": "focusfork.workflow",
+          "name": "Workflow",
+          "type": "tree"
+        },
+        {
+          "id": "focusfork.contributions",
+          "name": "Contribution Status",
+          "type": "tree"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "focusfork.refreshWorkflow",
+          "when": "view == focusfork.workflow",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "FocusFork",
+      "properties": {
+        "focusfork.backendUrl": {
+          "type": "string",
+          "default": "http://localhost:8080",
+          "description": "FocusFork backend base URL."
+        },
+        "focusfork.accessToken": {
+          "type": "string",
+          "default": "",
+          "description": "FocusFork backend access token for API requests."
+        },
+        "focusfork.defaultModel": {
+          "type": "string",
+          "default": "openai/gpt-4o-mini",
+          "description": "Default model to use for AI assistant."
+        },
+        "focusfork.githubToken": {
+          "type": "string",
+          "default": "",
+          "description": "GitHub token with repo scope used for fork/PR commands."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsc -p .",
+    "watch": "tsc -w -p ."
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "@types/vscode": "^1.90.0",
+    "typescript": "^5.6.3"
+  }
+}

@@ -1,0 +1,420 @@
+@import "tailwindcss";
+@plugin "tailwindcss-animate";
+
+@theme {
+  --font-sans: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Newsreader", ui-serif, Georgia, serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  --color-background: oklch(99% 0.002 95);
+  --color-background-alt: oklch(96% 0.003 95);
+  --color-surface: oklch(100% 0 0);
+  --color-surface-hover: oklch(97% 0.003 95);
+  --color-border: oklch(89% 0.005 95);
+  --color-border-strong: oklch(78% 0.007 95);
+
+  --color-primary: oklch(14% 0.004 95);
+  --color-primary-hover: oklch(22% 0.005 95);
+  --color-primary-foreground: oklch(99% 0.002 95);
+
+  --color-accent: oklch(14% 0.004 95);
+  --color-accent-foreground: oklch(99% 0.002 95);
+
+  --color-text-main: oklch(14% 0.004 95);
+  --color-text-secondary: oklch(50% 0.008 95);
+  --color-text-muted: oklch(50% 0.008 95);
+
+  --color-active: oklch(58% 0.13 68);
+  --color-active-soft: oklch(94% 0.05 68);
+  --color-active-text: oklch(18% 0.02 68);
+
+  --color-success: oklch(46% 0.1 150);
+  --color-success-bg: oklch(93% 0.04 150);
+  --color-danger: oklch(52% 0.16 25);
+  --color-danger-bg: oklch(94% 0.05 25);
+
+  --color-destructive: oklch(52% 0.16 25);
+  --color-destructive-foreground: #FFFFFF;
+
+  --color-muted: oklch(97% 0.003 95);
+  --color-muted-foreground: oklch(50% 0.008 95);
+  --color-card: oklch(100% 0 0);
+  --color-card-muted: oklch(97% 0.003 95);
+  --color-card-foreground: oklch(14% 0.004 95);
+  --color-popover: oklch(100% 0 0);
+  --color-popover-foreground: oklch(14% 0.004 95);
+  --color-input: oklch(89% 0.005 95);
+  --color-ring: oklch(14% 0.004 95);
+
+  --radius-xl: 1rem;
+  --radius-lg: 0.875rem;
+  --radius-md: 0.625rem;
+  --radius-sm: 0.5rem;
+
+  --shadow-sm: 0 1px 2px 0 oklch(14% 0.004 95 / 0.04);
+  --shadow-md: 0 4px 12px -2px oklch(14% 0.004 95 / 0.06);
+  --shadow-lg: 0 12px 24px -6px oklch(14% 0.004 95 / 0.08);
+}
+
+:root {
+  color-scheme: light;
+  --color-background: oklch(99% 0.002 95);
+  --color-background-alt: oklch(96% 0.003 95);
+  --color-surface: oklch(100% 0 0);
+  --color-surface-hover: oklch(97% 0.003 95);
+  --color-border: oklch(89% 0.005 95);
+  --color-border-strong: oklch(78% 0.007 95);
+  --color-primary: oklch(14% 0.004 95);
+  --color-primary-hover: oklch(22% 0.005 95);
+  --color-primary-foreground: oklch(99% 0.002 95);
+  --color-accent: oklch(14% 0.004 95);
+  --color-accent-foreground: oklch(99% 0.002 95);
+  --color-text-main: oklch(14% 0.004 95);
+  --color-text-secondary: oklch(50% 0.008 95);
+  --color-text-muted: oklch(50% 0.008 95);
+
+  --color-active: oklch(58% 0.13 68);
+  --color-active-soft: oklch(94% 0.05 68);
+  --color-active-text: oklch(18% 0.02 68);
+
+  --color-success: oklch(46% 0.1 150);
+  --color-success-bg: oklch(93% 0.04 150);
+  --color-danger: oklch(52% 0.16 25);
+  --color-danger-bg: oklch(94% 0.05 25);
+
+  --color-severity-critical: oklch(52% 0.16 25);
+  --color-severity-critical-bg: oklch(94% 0.05 25);
+  --color-severity-critical-border: oklch(78% 0.08 25);
+  --color-severity-warning: oklch(58% 0.13 68);
+  --color-severity-warning-bg: oklch(94% 0.05 68);
+  --color-severity-warning-border: oklch(78% 0.07 68);
+  --color-severity-suggestion: oklch(50% 0.14 262);
+  --color-severity-suggestion-bg: oklch(94% 0.04 262);
+  --color-severity-suggestion-border: oklch(78% 0.06 262);
+}
+
+.dark {
+  color-scheme: dark;
+  --color-background: oklch(11% 0.004 260);
+  --color-background-alt: oklch(14% 0.005 260);
+  --color-surface: oklch(15% 0.006 260);
+  --color-surface-hover: oklch(18% 0.007 260);
+  --color-border: oklch(25% 0.008 260);
+  --color-border-strong: oklch(33% 0.01 260);
+  --color-primary: oklch(95% 0.004 95);
+  --color-primary-hover: oklch(88% 0.005 95);
+  --color-primary-foreground: oklch(11% 0.004 260);
+  --color-accent: oklch(95% 0.004 95);
+  --color-accent-foreground: oklch(11% 0.004 260);
+  --color-text-main: oklch(95% 0.004 95);
+  --color-text-secondary: oklch(60% 0.01 95);
+  --color-text-muted: oklch(60% 0.01 95);
+  --color-destructive: oklch(64% 0.14 25);
+  --color-destructive-foreground: #FFFFFF;
+  --color-muted: oklch(18% 0.007 260);
+  --color-muted-foreground: oklch(60% 0.01 95);
+  --color-card: oklch(15% 0.006 260);
+  --color-card-muted: oklch(18% 0.007 260);
+  --color-card-foreground: oklch(95% 0.004 95);
+  --color-popover: oklch(15% 0.006 260);
+  --color-popover-foreground: oklch(95% 0.004 95);
+  --color-input: oklch(25% 0.008 260);
+  --color-ring: oklch(95% 0.004 95);
+
+  --color-active: oklch(72% 0.13 68);
+  --color-active-soft: oklch(28% 0.06 68);
+  --color-active-text: oklch(85% 0.08 68);
+
+  --color-success: oklch(64% 0.1 150);
+  --color-success-bg: oklch(24% 0.05 150);
+  --color-danger: oklch(64% 0.14 25);
+  --color-danger-bg: oklch(26% 0.06 25);
+
+  --shadow-sm: 0 1px 2px 0 oklch(0% 0 0 / 0.25);
+  --shadow-md: 0 4px 12px -2px oklch(0% 0 0 / 0.35);
+  --shadow-lg: 0 12px 24px -6px oklch(0% 0 0 / 0.4);
+
+  --color-severity-critical: oklch(64% 0.14 25);
+  --color-severity-critical-bg: oklch(26% 0.06 25);
+  --color-severity-critical-border: oklch(35% 0.08 25);
+  --color-severity-warning: oklch(72% 0.13 68);
+  --color-severity-warning-bg: oklch(28% 0.06 68);
+  --color-severity-warning-border: oklch(38% 0.07 68);
+  --color-severity-suggestion: oklch(65% 0.12 262);
+  --color-severity-suggestion-bg: oklch(22% 0.04 262);
+  --color-severity-suggestion-border: oklch(32% 0.06 262);
+}
+
+body {
+  @apply bg-background text-text-main font-sans antialiased transition-colors duration-200;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+::selection {
+  background-color: color-mix(in oklab, var(--color-primary) 42%, var(--color-surface));
+  color: var(--color-text-main);
+}
+
+.chat-bubble-user ::selection {
+  background-color: color-mix(in oklab, var(--color-primary-foreground) 28%, var(--color-primary));
+  color: var(--color-primary-foreground);
+}
+
+.chat-bubble-assistant ::selection,
+.chat-markdown ::selection,
+.chat-composer-notice ::selection {
+  background-color: color-mix(in oklab, var(--color-primary) 45%, var(--color-surface));
+  color: var(--color-text-main);
+}
+
+.chat-markdown-inverted ::selection {
+  background-color: color-mix(in oklab, var(--color-primary-foreground) 28%, var(--color-primary));
+  color: var(--color-primary-foreground);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  width: 100%;
+}
+
+button,
+a,
+[role="button"],
+summary,
+select,
+input[type="checkbox"],
+input[type="radio"],
+input[type="range"] {
+  cursor: pointer;
+}
+
+button:disabled,
+input:disabled,
+select:disabled {
+  cursor: not-allowed;
+}
+
+h1, h2, h3 {
+  text-wrap: balance;
+}
+
+@utility panel {
+  @apply bg-surface border border-border rounded-2xl shadow-sm;
+}
+
+@utility warm-surface {
+  background: linear-gradient(180deg, color-mix(in oklab, var(--color-background) 88%, white), var(--color-background));
+}
+
+.dark .warm-surface {
+  background: linear-gradient(180deg, color-mix(in oklab, var(--color-background) 92%, var(--color-surface)), var(--color-background));
+}
+
+@utility glass-panel {
+  @apply bg-surface/90 border border-border/80 shadow-sm;
+}
+
+@utility focusfork-logo-well {
+  @apply rounded-lg border border-border bg-white p-1 shadow-sm object-contain;
+}
+
+.dark .focusfork-logo-well {
+  background-color: oklch(97% 0.003 95);
+}
+
+@utility page-enter {
+  animation: page-enter 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@utility section-kicker {
+  @apply text-xs font-medium text-text-muted;
+}
+
+@utility btn-primary {
+  @apply inline-flex items-center justify-center gap-2 rounded-[10px] bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-88 disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+@utility btn-secondary {
+  @apply inline-flex items-center justify-center gap-2 rounded-[10px] border border-border bg-surface px-4 py-2.5 text-sm font-semibold text-text-main transition-colors hover:border-border-strong disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+@utility btn-ghost {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm text-text-secondary transition-colors hover:bg-surface-hover hover:text-text-main disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+@utility input-field {
+  @apply w-full rounded-[10px] border border-border bg-surface px-3.5 py-2.5 text-sm text-text-main outline-none transition-shadow placeholder:text-text-muted focus:border-border-strong focus:ring-2 focus:ring-primary/10;
+}
+
+@utility shell-card {
+  @apply rounded-xl border border-border bg-surface;
+}
+
+@utility empty-state {
+  @apply flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-surface/60 px-6 py-12 text-center;
+}
+
+@utility status-pill {
+  @apply inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-2.5 py-1 text-[11px] font-medium text-text-secondary;
+}
+
+@utility composer-tool-btn {
+  @apply inline-flex h-[27px] w-[27px] items-center justify-center rounded-[7px] border border-border text-text-muted transition-colors hover:bg-surface-hover hover:text-text-main disabled:cursor-not-allowed disabled:opacity-40;
+}
+
+@utility agent-message-enter {
+  animation: agent-message-enter 180ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.workspace-shell [data-panel] {
+  min-height: 0;
+  min-width: 0;
+}
+
+.workspace-shell [data-panel] > * {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.workspace-terminal-root .xterm {
+  height: 100%;
+  width: 100%;
+  padding: 4px 6px;
+}
+
+.workspace-terminal-root .xterm-viewport {
+  overflow-y: auto;
+}
+
+.workspace-terminal-root .xterm-screen {
+  height: 100%;
+}
+
+@utility chat-markdown-inverted {
+  @apply [&_a]:text-primary-foreground [&_code]:bg-primary-foreground/15 [&_code]:text-primary-foreground [&_blockquote]:border-primary-foreground/30 [&_blockquote]:text-primary-foreground/85;
+}
+
+@keyframes agent-message-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ff-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes ff-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-enter,
+  .agent-message-enter {
+    animation: none;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+@keyframes blink-caret {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@utility typing-caret {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  vertical-align: text-bottom;
+  background: var(--color-text-muted);
+  animation: blink-caret 1s step-end infinite;
+  margin-left: 2px;
+}
+
+@keyframes soft-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.soft-pulse {
+  animation: soft-pulse 2s ease-in-out infinite;
+}
+
+@utility card-interactive {
+  @apply rounded-xl border border-border bg-surface transition-colors hover:border-border-strong cursor-pointer;
+}
+
+@utility review-finding-critical {
+  border-left: 3px solid var(--color-severity-critical);
+  background: var(--color-severity-critical-bg);
+}
+
+@utility review-finding-warning {
+  border-left: 3px solid var(--color-severity-warning);
+  background: var(--color-severity-warning-bg);
+}
+
+@utility review-finding-suggestion {
+  border-left: 3px solid var(--color-severity-suggestion);
+  background: var(--color-severity-suggestion-bg);
+}
+
+@utility focus-ring {
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:ring-offset-1 focus-visible:ring-offset-background;
+}
+
+/* GitHub-colored issue label chips. --label-color is set inline per label;
+   color-mix keeps text readable against light and dark surfaces. */
+.label-chip {
+  --label-color: var(--color-text-muted);
+  background: color-mix(in srgb, var(--label-color) 13%, transparent);
+  border: 1px solid color-mix(in srgb, var(--label-color) 30%, transparent);
+  color: color-mix(in srgb, var(--label-color) 55%, oklch(25% 0.005 95));
+}
+
+.dark .label-chip {
+  color: color-mix(in srgb, var(--label-color) 65%, white);
+}

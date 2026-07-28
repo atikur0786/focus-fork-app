@@ -1,0 +1,105 @@
+name: Build And Release Desktop Apps
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Prepare app config
+        env:
+          GITHUB_OAUTH_CLIENT_ID: ${{ secrets.GITHUB_OAUTH_CLIENT_ID }}
+        run: |
+          mkdir -p resources
+          if [ -n "$GITHUB_OAUTH_CLIENT_ID" ]; then
+            printf '{\n  "githubClientId": "%s"\n}\n' "$GITHUB_OAUTH_CLIENT_ID" > resources/app-config.json
+          else
+            echo "No GITHUB_OAUTH_CLIENT_ID secret configured. Build will work, login won't."
+            printf '{\n  "githubClientId": ""\n}\n' > resources/app-config.json
+          fi
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Linux artifacts
+        if: runner.os == 'Linux'
+        run: npm run build:linux
+
+      - name: Build Windows artifacts
+        if: runner.os == 'Windows'
+        run: npm run build:win
+
+      - name: Build macOS artifacts
+        if: runner.os == 'macOS'
+        run: npm run build:mac
+
+      - name: Upload Linux artifacts
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: focusfork-linux
+          path: |
+            dist/*.AppImage
+            dist/*.deb
+          if-no-files-found: error
+
+      - name: Upload Windows artifacts
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: focusfork-windows
+          path: |
+            dist/*setup*.exe
+            dist/*.exe
+          if-no-files-found: error
+
+      - name: Upload macOS artifacts
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: focusfork-macos
+          path: |
+            dist/*.dmg
+            dist/*.zip
+          if-no-files-found: error
+
+  release:
+    name: Publish GitHub Release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release-artifacts/**/*
+          generate_release_notes: true
