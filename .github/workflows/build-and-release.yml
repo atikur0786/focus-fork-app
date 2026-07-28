@@ -30,16 +30,17 @@ jobs:
 
       - name: Prepare app config
         env:
-          GITHUB_OAUTH_CLIENT_ID: ${{ secrets.GITHUB_OAUTH_CLIENT_ID }}
+          # Secret and env names must not start with GITHUB_ (reserved by Actions).
+          OAUTH_CLIENT_ID: ${{ secrets.OAUTH_CLIENT_ID }}
         # bash explicitly: the default shell on windows-latest is pwsh, which
         # cannot parse the [ -n ... ] test below.
         shell: bash
         run: |
           mkdir -p resources
-          if [ -n "$GITHUB_OAUTH_CLIENT_ID" ]; then
-            printf '{\n  "githubClientId": "%s"\n}\n' "$GITHUB_OAUTH_CLIENT_ID" > resources/app-config.json
+          if [ -n "$OAUTH_CLIENT_ID" ]; then
+            printf '{\n  "githubClientId": "%s"\n}\n' "$OAUTH_CLIENT_ID" > resources/app-config.json
           else
-            echo "No GITHUB_OAUTH_CLIENT_ID secret configured. Build will work, login won't."
+            echo "No OAUTH_CLIENT_ID secret configured. Build will work, login won't."
             printf '{\n  "githubClientId": ""\n}\n' > resources/app-config.json
           fi
 
