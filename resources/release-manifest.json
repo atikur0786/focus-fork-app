@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0-beta.3",
+  "version": "0.1.0-beta.4",
   "notes": "First public beta: issue discovery with a live pre-claim gate, approval-gated fork and clone, built-in editor and terminal, and bring-your-own-key AI (OpenAI, Anthropic, Gemini, OpenRouter).",
   "download_url": "https://github.com/atikur0786/focus-fork-app/releases"
 }
