@@ -34,6 +34,7 @@ nsis:
   createDesktopShortcut: always
 mac:
   icon: build/app-icon.png
+  entitlements: build/entitlements.mac.plist
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
     - CFBundleName: FocusFork

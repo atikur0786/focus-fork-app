@@ -8,5 +8,15 @@
     <true/>
     <key>com.apple.security.cs.allow-dyld-environment-variables</key>
     <true/>
+    <!--
+      Required while builds are ad-hoc signed. Hardened Runtime turns on
+      Library Validation, which demands every loaded library share the main
+      executable's Team ID. Ad-hoc signatures carry no Team ID, so dyld
+      refuses to load Electron Framework and the app dies at launch with
+      "different Team IDs". Once builds are signed with a Developer ID and
+      notarized, this key can be removed.
+    -->
+    <key>com.apple.security.cs.disable-library-validation</key>
+    <true/>
   </dict>
 </plist>
