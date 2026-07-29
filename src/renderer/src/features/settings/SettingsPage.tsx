@@ -5,6 +5,7 @@ import { LogOut, Moon, Sun, Check, HelpCircle } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { useAIStore } from '../../store/useAIStore'
 import { ModelSelector, type ModelOption } from '../../components/ModelSelector'
+import { ModalPortal } from '../../components/ModalPortal'
 import { useAIModeStore } from '../../store/useAIModeStore'
 import { listModelsForProvider, PROVIDER_VENDOR_KEYS } from '../../../../shared/byok-models'
 import { mapPlatformModels } from '../../lib/platform-models'
@@ -563,6 +564,7 @@ export const SettingsPage = () => {
             </div>
 
             {confirmLogoutOpen && (
+                <ModalPortal>
                 <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onClick={(e) => { if (e.target === e.currentTarget) setConfirmLogoutOpen(false) }} onKeyDown={(e) => { if (e.key === 'Escape') setConfirmLogoutOpen(false) }}>
                     <div className="w-full max-w-md rounded-xl border border-border bg-surface p-5 shadow-xl">
                         <h4 className="text-[16px] font-semibold text-text-main mb-2">Sign out from FocusFork?</h4>
@@ -589,6 +591,7 @@ export const SettingsPage = () => {
                         </div>
                     </div>
                 </div>
+                </ModalPortal>
             )}
         </div>
     )

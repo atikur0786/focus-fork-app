@@ -317,7 +317,11 @@ h1, h2, h3 {
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    /* `none`, not translateY(0): the animation uses fill-mode `both`, so the
+       final value persists. Any non-none transform makes the page a
+       containing block for position:fixed children, which collapses modal
+       overlays onto the first viewport instead of covering the screen. */
+    transform: none;
   }
 }
 

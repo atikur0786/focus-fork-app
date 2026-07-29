@@ -13,6 +13,7 @@ import {
   CheckCircle2
 } from 'lucide-react'
 import clsx from 'clsx'
+import { ModalPortal } from './ModalPortal'
 
 const STORAGE_KEY = 'focusfork-onboarding-complete'
 
@@ -132,6 +133,7 @@ export function OnboardingGuide({ onComplete }: OnboardingGuideProps): React.JSX
   }, [isLast, isFirst, onComplete])
 
   return (
+    <ModalPortal>
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
       <div className="w-full max-w-lg panel shadow-xl page-enter overflow-hidden">
         {/* Skip button */}
@@ -240,5 +242,6 @@ export function OnboardingGuide({ onComplete }: OnboardingGuideProps): React.JSX
         </div>
       </div>
     </div>
+    </ModalPortal>
   )
 }

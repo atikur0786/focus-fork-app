@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Check, FileCode2, FolderOpen, Search, X } from 'lucide-react'
 import { isLikelyTextFile } from '../../lib/chat-attachments'
 import { prepareRepoFileIndex, toAbsoluteRepoPath } from '../../lib/repo-file-index'
+import { ModalPortal } from '../ModalPortal'
 
 interface ContextFilePickerProps {
   isOpen: boolean
@@ -111,6 +112,7 @@ export function ContextFilePicker({
   const isSelected = (relativePath: string) => picked.includes(toAbsoluteRepoPath(repoRootPath, relativePath))
 
   return (
+    <ModalPortal>
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/25 p-4 backdrop-blur-[1px]" data-testid="context-file-picker">
       <div className="flex max-h-[80vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-lg">
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
@@ -200,5 +202,6 @@ export function ContextFilePicker({
         </div>
       </div>
     </div>
+    </ModalPortal>
   )
 }
