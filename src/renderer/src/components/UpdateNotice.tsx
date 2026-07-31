@@ -16,6 +16,31 @@ interface UpdateCheckResult {
 
 const DISMISS_KEY = 'focusfork-dismissed-update-version'
 
+/**
+ * Updates always send people to the download page rather than the raw GitHub
+ * release: it resolves the newest build for every platform and carries the
+ * first-launch instructions unsigned builds need.
+ */
+const DOWNLOAD_PAGE_URL = 'https://focusfork.dev/download'
+
+/**
+ * GitHub's auto-generated release notes are mostly a "Full Changelog" link,
+ * which is noise in a desktop dialog. Strip that and light markdown so the
+ * panel shows readable text, and fall back to a plain sentence when nothing
+ * meaningful is left.
+ */
+function cleanNotes(raw: string): string {
+  const text = raw
+    .split('\n')
+    .filter((line) => !/^\s*\*\*Full Changelog\*\*/i.test(line))
+    .join('\n')
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/^#+\s*/gm, '')
+    .replace(/https?:\/\/\S*compare\/\S+/g, '')
+    .trim()
+  return text || 'Bug fixes and improvements. See the release page for details.'
+}
+
 export function UpdateNotice(): React.JSX.Element | null {
   const [result, setResult] = useState<UpdateCheckResult | null>(null)
   const [dismissed, setDismissed] = useState(false)
@@ -63,20 +88,18 @@ export function UpdateNotice(): React.JSX.Element | null {
             You are on v{result.currentVersion}. Install the latest build to get new fixes and features.
           </p>
           <div className="mt-3 rounded-xl border border-border bg-background px-3 py-2 text-sm leading-6 text-text-main whitespace-pre-wrap max-h-40 overflow-y-auto">
-            {result.manifest.notes}
+            {cleanNotes(result.manifest.notes)}
           </div>
           <div className="mt-4 flex items-center gap-2">
-            {result.manifest.download_url ? (
-              <button
-                type="button"
-                data-testid="update-download-btn"
-                onClick={() => void window.api.openExternal(result.manifest!.download_url!)}
-                className="btn-primary px-3 py-2 text-xs"
-              >
-                <Download size={14} />
-                Download update
-              </button>
-            ) : null}
+            <button
+              type="button"
+              data-testid="update-download-btn"
+              onClick={() => void window.api.openExternal(DOWNLOAD_PAGE_URL)}
+              className="btn-primary px-3 py-2 text-xs"
+            >
+              <Download size={14} />
+              Download update
+            </button>
             <button
               type="button"
               data-testid="update-dismiss-btn"
