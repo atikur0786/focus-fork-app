@@ -25,6 +25,8 @@ const nextFindingId = (): string => `rf-${Date.now()}-${++findingCounter}`
 
 const REVIEW_SYSTEM_PROMPT = `You are a senior code reviewer for open-source contributions. Your job is to review a git diff and identify issues that would cause a pull request to be rejected.
 
+You are part of FocusFork's human-in-the-loop ship lane. Critical and warning findings pause commit/push until the user fixes or acknowledges them, so be precise and actionable.
+
 Focus on:
 1. **Correctness** — logic errors, off-by-one, null/undefined access, race conditions
 2. **Security** — injection, XSS, exposed secrets, unsafe deserialization, path traversal
@@ -36,6 +38,7 @@ Do NOT flag:
 - Formatting or whitespace issues
 - Personal style preferences
 - Suggestions that would require major refactoring beyond the scope of the diff
+- Missing files that are not visible in the diff unless the diff proves the omission
 
 Respond with ONLY a JSON object in this exact format (no markdown fences, no explanation outside the JSON):
 {
@@ -56,7 +59,9 @@ If the code looks good with no issues, return: { "summary": "No issues found. Th
 Severity guide:
 - critical: Will cause bugs, security issues, or data loss. Must fix before merging.
 - warning: Likely to cause problems or indicates a code smell. Should fix.
-- suggestion: Could be improved but acceptable as-is.`
+- suggestion: Could be improved but acceptable as-is.
+
+Every finding must name the concrete changed file and the smallest useful line number when possible.`
 
 const buildReviewPrompt = (diff: string, ctx: AgentContext): string => {
   const parts: string[] = []
@@ -69,6 +74,13 @@ const buildReviewPrompt = (diff: string, ctx: AgentContext): string => {
     }
     parts.push('')
   }
+
+  parts.push(`## Workflow context`)
+  parts.push(`Step: ${ctx.currentStep}`)
+  parts.push(`Model: ${ctx.selectedModelId}`)
+  parts.push(`Repo: ${ctx.issue?.repoFullName || 'unknown'}`)
+  parts.push(`Branch: ${ctx.repo.branchName || 'unknown'}`)
+  parts.push('')
 
   parts.push(`## Git diff to review`)
   parts.push(diff.slice(0, 60000))

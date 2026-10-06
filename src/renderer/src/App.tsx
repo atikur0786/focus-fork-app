@@ -31,9 +31,9 @@ function App(): React.JSX.Element {
 
   useEffect(() => {
     void checkAuth()
-    const unsubscribe = window.api.platform.onBackendSessionChange((payload) => {
+    const unsubscribe = window.api.platform.onBackendSessionChange?.((payload) => {
       useAuthStore.getState().applyBackendSession(payload)
-    })
+    }) ?? (() => undefined)
     return unsubscribe
   }, [checkAuth])
 

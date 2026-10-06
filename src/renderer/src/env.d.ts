@@ -131,7 +131,7 @@ interface PlatformAPI {
   aiChat: (payload: { messages: Array<{ role: string; content: string }>; context: string; model?: string }) => Promise<{ text?: string; model?: string; fallbackUsed?: boolean; errorCode?: string; message?: string; debugHint?: string }>
   ensureSession: () => Promise<boolean>
   reconnectBackend: () => Promise<boolean>
-  onBackendSessionChange: (
+  onBackendSessionChange?: (
     callback: (payload: { connected: boolean; enabled: boolean; backendBaseURL?: string }) => void
   ) => () => void
 }

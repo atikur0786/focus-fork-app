@@ -39,8 +39,10 @@ export const shipAgent = {
         {
           role: 'user',
           content: [
-            `Generate a concise conventional commit message for this work.`,
+            'Generate one concise conventional commit message for this work.',
+            'Rules: lowercase type, optional scope, imperative summary, 72 characters or fewer, no markdown, no quotes.',
             `Issue: ${ctx.issue?.title || 'N/A'}`,
+            `Repo: ${ctx.issue?.repoFullName || 'N/A'}`,
             `Summary: ${summary}`
           ].join('\n')
         }

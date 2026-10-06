@@ -723,7 +723,7 @@ export function AIChatPanel({
         try {
           const reviewCtx = {
             ...defaultContext,
-            selectedModelId: 'deepseek/deepseek-r1:free',
+            selectedModelId: model,
             currentStep: 'committed' as const,
             issue: issueNumber ? { id: 0, number: issueNumber, title: issueTitle || '', body: undefined, repoOwner: '', repoName: '', repoFullName: repoFullName || '' } : null,
             repo: { rootPath: repoRootPath, activeFilePath: null, branchName: branchName || 'no-branch' },

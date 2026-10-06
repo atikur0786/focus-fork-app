@@ -27,6 +27,7 @@ import { useAuthStore } from '../../store/useAuthStore'
 import { useSettingsStore } from '../../store/useSettingsStore'
 import { useIssueStore } from '../../store/useIssueStore'
 import { useUIStore } from '../../store/useUIStore'
+import { useAIStore } from '../../store/useAIStore'
 import { useWorkflowEngineStore } from '../../store/useWorkflowEngineStore'
 import { useContributionStore } from '../../store/useContributionStore'
 import { trackContributionEvent } from '../../store/useContributionHistoryStore'
@@ -110,6 +111,7 @@ export function IDE(): React.JSX.Element {
   const { activeRepoPath, preferredEditorId } = useSettingsStore()
   const { selectedIssue } = useIssueStore()
   const { setView } = useUIStore()
+  const selectedModelId = useAIStore((state) => state.model)
   const { user, isAuthenticated, backendConnected } = useAuthStore()
   const { steps, activityTimeline, updateStep, addActivity } = useContributionStore()
   const { currentStep, transition, failStep } = useWorkflowEngineStore()
@@ -307,7 +309,7 @@ export function IDE(): React.JSX.Element {
     }>
   ) => ({
     ...defaultContext,
-    selectedModelId: 'deepseek/deepseek-r1:free',
+    selectedModelId,
     currentStep: overrides?.step ?? currentStep,
     issue: selectedIssue
       ? {
