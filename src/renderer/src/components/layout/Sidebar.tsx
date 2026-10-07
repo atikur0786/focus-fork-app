@@ -18,12 +18,12 @@ import { useContributionStore, WORKFLOW_ORDER } from '../../store/useContributio
 import { clsx } from 'clsx'
 import icon from '../../../../../resources/icon.png'
 
-const NAV_ITEMS: Array<{ id: View; label: string; icon: typeof Compass }> = [
-    { id: 'issues', label: 'Discover', icon: Compass },
-    { id: 'ide', label: 'Workspace', icon: Code2 },
-    { id: 'chat', label: 'Chat', icon: MessageSquare },
-    { id: 'contributions', label: 'History', icon: GitBranch },
-    { id: 'usage', label: 'Usage', icon: BarChart3 },
+const NAV_ITEMS: Array<{ id: View; label: string; icon: typeof Compass; testId: string }> = [
+    { id: 'issues', label: 'Discover', icon: Compass, testId: 'discover-tab' },
+    { id: 'ide', label: 'Workspace', icon: Code2, testId: 'workspace-tab' },
+    { id: 'chat', label: 'Chat', icon: MessageSquare, testId: 'chat-tab' },
+    { id: 'contributions', label: 'History', icon: GitBranch, testId: 'history-tab' },
+    { id: 'usage', label: 'Usage', icon: BarChart3, testId: 'usage-tab' },
 ]
 
 const PROGRESS_SEGMENTS = ['fork', 'clone', 'code', 'pr'] as const
@@ -53,6 +53,7 @@ export const Sidebar = () => {
                     <span className="font-semibold text-[13px] tracking-tight text-text-main truncate">FocusFork</span>
                 )}
                 <button
+                    data-testid="sidebar-collapse-btn"
                     onClick={toggleSidebar}
                     className={clsx(
                         'h-6 w-6 flex items-center justify-center rounded-md text-text-muted hover:bg-surface-hover hover:text-text-main transition-colors',
@@ -67,12 +68,13 @@ export const Sidebar = () => {
             {/* Navigation */}
             <nav className={clsx('flex-1 overflow-y-auto py-2', sidebarCollapsed ? 'px-1.5' : 'px-2')}>
                 <div className="space-y-0.5">
-                    {NAV_ITEMS.map(({ id, label, icon: Icon }) => {
+                    {NAV_ITEMS.map(({ id, label, icon: Icon, testId }) => {
                         const activity = tabActivity[id]
                         const isActive = currentView === id
                         return (
                             <button
                                 key={id}
+                                data-testid={testId}
                                 onClick={() => setView(id)}
                                 title={sidebarCollapsed ? label : undefined}
                                 className={clsx(
@@ -107,6 +109,7 @@ export const Sidebar = () => {
                 {selectedIssue && (
                     <div className={clsx('mt-3 pt-3 border-t border-border', sidebarCollapsed && 'px-0')}>
                         <button
+                            data-testid="active-issue-card"
                             onClick={() => setView('ide')}
                             className={clsx(
                                 'w-full rounded-[11px] border border-border bg-background transition-colors hover:border-border-strong',
@@ -151,6 +154,7 @@ export const Sidebar = () => {
             {/* Bottom: Settings + Account */}
             <div className={clsx('shrink-0 border-t border-border', sidebarCollapsed ? 'p-1.5' : 'p-2')}>
                 <button
+                    data-testid="settings-nav-btn"
                     onClick={() => setView('settings')}
                     title={sidebarCollapsed ? 'Settings' : undefined}
                     className={clsx(
@@ -171,6 +175,7 @@ export const Sidebar = () => {
                         sidebarCollapsed ? 'justify-center' : 'gap-2 px-3 py-1'
                     )}>
                         <img
+                            data-testid="user-avatar"
                             src={user.avatar_url}
                             alt={user.login}
                             className="h-6 w-6 rounded-full border border-border object-cover shrink-0"
@@ -179,6 +184,7 @@ export const Sidebar = () => {
                             <>
                                 <span className="truncate text-xs text-text-muted flex-1">@{user.login}</span>
                                 <button
+                                    data-testid="theme-toggle-btn"
                                     onClick={(e) => {
                                         e.stopPropagation()
                                         setTheme(theme === 'dark' ? 'light' : 'dark')

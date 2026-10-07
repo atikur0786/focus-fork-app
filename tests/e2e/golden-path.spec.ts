@@ -51,6 +51,8 @@ const registerDesktopMocks = async (page: import('@playwright/test').Page) => {
         localStorage.setItem(key, JSON.stringify({ state, version }))
       }
 
+      localStorage.setItem('focusfork-onboarding-complete', 'true')
+
       ;(window as any).electron = {
         ipcRenderer: {
           invoke: async (channel: string) => {
@@ -249,15 +251,14 @@ test.describe('golden path shell', () => {
 
   test('ide shell exposes branch workflow and guided ai actions', async ({ page }) => {
     await registerDesktopMocks(page)
-    await page.addInitScript(() => {
-      localStorage.setItem('ui-storage', JSON.stringify({ state: { currentView: 'ide' }, version: 2 }))
-    })
     await page.goto('/')
+    await page.getByTestId('workspace-tab').click()
     await page.getByTestId('ide-tab-git').click()
     await expect(page.getByTestId('branch-name-input')).toBeVisible()
     await expect(page.getByTestId('branch-create-btn')).toBeVisible()
     await expect(page.getByTestId('open-vscode-btn')).toBeVisible()
     await expect(page.getByTestId('ai-chat-panel')).toBeVisible()
+    await page.getByTestId('chat-quick-actions-btn').click()
     await expect(page.getByTestId('ai-quick-summary-btn')).toBeVisible()
     await expect(page.getByTestId('ai-quick-files-btn')).toBeVisible()
     await expect(page.getByTestId('ai-quick-plan-btn')).toBeVisible()
@@ -267,11 +268,9 @@ test.describe('golden path shell', () => {
 
   test('contribution history renders tracked workflow events', async ({ page }) => {
     await registerDesktopMocks(page)
-    await page.addInitScript(() => {
-      localStorage.setItem('ui-storage', JSON.stringify({ state: { currentView: 'contributions' }, version: 2 }))
-    })
     await page.goto('/')
     await expect(page.getByTestId('history-tab')).toBeVisible()
+    await page.getByTestId('history-tab').click()
     await expect(page.getByTestId('contribution-list')).toBeVisible()
     await expect(page.getByText('Pull request created')).toBeVisible()
   })
