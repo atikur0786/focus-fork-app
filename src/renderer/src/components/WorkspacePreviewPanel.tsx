@@ -6,6 +6,7 @@ import { buildLineDiff } from '../lib/line-diff'
 import { githubBlobUrl, githubIssueUrl, githubRepoHomeUrl } from '../lib/github-links'
 import { CodeEditor } from './CodeEditor'
 import { useUIStore } from '../store/useUIStore'
+import { ApprovalGate } from './ApprovalGate'
 
 interface WorkspacePreviewPanelProps {
   repoPath: string | null
@@ -47,6 +48,7 @@ export function WorkspacePreviewPanel({
   const [headError, setHeadError] = useState<string | null>(null)
   const [dirty, setDirty] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [pendingSave, setPendingSave] = useState<{ path: string; content: string } | null>(null)
   const editorContentRef = useRef(content)
   const { theme } = useUIStore()
 
@@ -94,17 +96,23 @@ export function WorkspacePreviewPanel({
 
   const handleSave = useCallback(async (newContent: string) => {
     if (!filePath) return
+    setPendingSave({ path: filePath, content: newContent })
+  }, [filePath])
+
+  const handleApprovedSave = useCallback(async () => {
+    if (!pendingSave) return
     setSaving(true)
     try {
-      await window.api.fs.writeFile(filePath, newContent)
+      await window.api.fs.writeFile(pendingSave.path, pendingSave.content)
       setDirty(false)
-      onFileContentChanged?.(filePath, newContent)
+      onFileContentChanged?.(pendingSave.path, pendingSave.content)
+      setPendingSave(null)
     } catch (err) {
       console.error('Failed to save file:', err)
     } finally {
       setSaving(false)
     }
-  }, [filePath, onFileContentChanged])
+  }, [pendingSave, onFileContentChanged])
 
   const handleChange = useCallback((newContent: string) => {
     editorContentRef.current = newContent
@@ -170,6 +178,7 @@ export function WorkspacePreviewPanel({
             {dirty && (
               <button
                 type="button"
+                data-testid="preview-save-btn"
                 onClick={() => void handleSave(editorContentRef.current)}
                 className="btn-secondary px-2 py-1 text-[11px]"
                 title="Save (⌘S)"
@@ -326,6 +335,17 @@ export function WorkspacePreviewPanel({
           />
         )}
       </div>
+      <ApprovalGate
+        actionLabel={`Save ${pendingSave?.path.split('/').pop() || 'file'}`}
+        description="This will write the editor contents to the local filesystem in your active repository."
+        isOpen={pendingSave !== null}
+        isBusy={saving}
+        onApprove={() => void handleApprovedSave()}
+        onReject={() => {
+          if (saving) return
+          setPendingSave(null)
+        }}
+      />
     </div>
   )
 }

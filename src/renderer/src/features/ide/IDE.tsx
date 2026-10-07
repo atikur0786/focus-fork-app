@@ -45,6 +45,11 @@ type SearchResult = {
 }
 
 type CreateKind = 'file' | 'folder' | null
+type PendingFilesystemAction = {
+  actionLabel: string
+  description: string
+  approve: () => Promise<void>
+}
 
 const IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp', '.ico', '.svg']
 
@@ -138,7 +143,9 @@ export function IDE(): React.JSX.Element {
   const [createBusy, setCreateBusy] = useState(false)
   const [createError, setCreateError] = useState<string | null>(null)
   const [pendingGitAction, setPendingGitAction] = useState<'commit' | 'push' | 'pr' | null>(null)
+  const [pendingFilesystemAction, setPendingFilesystemAction] = useState<PendingFilesystemAction | null>(null)
   const [approvalBusy, setApprovalBusy] = useState(false)
+  const [filesystemApprovalBusy, setFilesystemApprovalBusy] = useState(false)
   const [commitSuggesting, setCommitSuggesting] = useState(false)
   const [prTitle, setPrTitle] = useState('')
   const [prBody, setPrBody] = useState('')
@@ -449,27 +456,36 @@ export function IDE(): React.JSX.Element {
 
   const handleCreate = async () => {
     if (!createKind || !createName.trim() || !activeRepoPath) return
-    try {
-      setCreateBusy(true)
-      setCreateError(null)
-      const basePath = selectedPath && flatNodes.find((node) => node.path === selectedPath)?.isDirectory
-        ? selectedPath
-        : activeRepoPath
-      const targetPath = `${basePath}/${createName.trim()}`
-      if (createKind === 'file') {
-        await window.api.fs.createFile(targetPath, '')
-      } else {
-        await window.api.fs.createDir(targetPath)
+    setCreateError(null)
+    const basePath = selectedPath && flatNodes.find((node) => node.path === selectedPath)?.isDirectory
+      ? selectedPath
+      : activeRepoPath
+    const itemName = createName.trim()
+    const itemKind = createKind
+    const targetPath = `${basePath}/${itemName}`
+    setPendingFilesystemAction({
+      actionLabel: `Create ${itemKind} ${itemName}`,
+      description: `This will create ${itemKind === 'file' ? 'a file' : 'a folder'} at ${targetPath}.`,
+      approve: async () => {
+        try {
+          setCreateBusy(true)
+          if (itemKind === 'file') {
+            await window.api.fs.createFile(targetPath, '')
+          } else {
+            await window.api.fs.createDir(targetPath)
+          }
+          setStatusMessage(`${itemKind === 'file' ? 'Created file' : 'Created folder'} ${itemName}`)
+          setCreateKind(null)
+          setCreateName('')
+          await loadTree()
+          await refreshGitStatus()
+        } catch (error) {
+          setCreateError(humanizeError(error, 'Could not create that item.'))
+        } finally {
+          setCreateBusy(false)
+        }
       }
-      setStatusMessage(`${createKind === 'file' ? 'Created file' : 'Created folder'} ${createName.trim()}`)
-      setCreateKind(null)
-      setCreateName('')
-      await loadTree()
-    } catch (error) {
-      setCreateError(humanizeError(error, 'Could not create that item.'))
-    } finally {
-      setCreateBusy(false)
-    }
+    })
   }
 
   const [renameTarget, setRenameTarget] = useState<string | null>(null)
@@ -493,46 +509,61 @@ export function IDE(): React.JSX.Element {
       setRenameTarget(null)
       return
     }
-    try {
-      await window.api.fs.rename(renameTarget, newPath)
-      if (activeTabPath === renameTarget) {
-        setActiveTabPath(newPath)
-        setOpenTabs((prev) => prev.map((p) => p === renameTarget ? newPath : p))
-        const content = await window.api.fs.readFile(newPath)
-        setFileContents((prev) => {
-          const next = { ...prev }
-          delete next[renameTarget]
-          next[newPath] = content
-          return next
-        })
+    const oldPath = renameTarget
+    const nextName = renameDraft.trim()
+    setPendingFilesystemAction({
+      actionLabel: `Rename ${oldPath.split('/').pop()} to ${nextName}`,
+      description: `This will rename ${oldPath} to ${newPath} on the local filesystem.`,
+      approve: async () => {
+        try {
+          await window.api.fs.rename(oldPath, newPath)
+          if (activeTabPath === oldPath) {
+            setActiveTabPath(newPath)
+            setOpenTabs((prev) => prev.map((p) => p === oldPath ? newPath : p))
+            const content = await window.api.fs.readFile(newPath)
+            setFileContents((prev) => {
+              const next = { ...prev }
+              delete next[oldPath]
+              next[newPath] = content
+              return next
+            })
+          }
+          setStatusMessage(`Renamed to ${nextName}`)
+          await loadTree()
+          await refreshGitStatus()
+          setRenameTarget(null)
+        } catch (error) {
+          setStatusMessage(humanizeError(error, 'Could not rename.'))
+        }
       }
-      setStatusMessage(`Renamed to ${renameDraft.trim()}`)
-      await loadTree()
-      await refreshGitStatus()
-    } catch (error) {
-      setStatusMessage(humanizeError(error, 'Could not rename.'))
-    }
-    setRenameTarget(null)
+    })
   }
 
   const confirmDelete = async () => {
     if (!deleteTarget) return
-    try {
-      await window.api.fs.delete(deleteTarget)
-      if (openTabs.includes(deleteTarget)) {
-        const remaining = openTabs.filter((p) => p !== deleteTarget)
-        setOpenTabs(remaining)
-        if (activeTabPath === deleteTarget) {
-          setActiveTabPath(remaining.length > 0 ? remaining[remaining.length - 1] : null)
+    const target = deleteTarget
+    setPendingFilesystemAction({
+      actionLabel: `Delete ${target.split('/').pop()}`,
+      description: `This will permanently delete ${target} from the local filesystem.`,
+      approve: async () => {
+        try {
+          await window.api.fs.delete(target)
+          if (openTabs.includes(target)) {
+            const remaining = openTabs.filter((p) => p !== target)
+            setOpenTabs(remaining)
+            if (activeTabPath === target) {
+              setActiveTabPath(remaining.length > 0 ? remaining[remaining.length - 1] : null)
+            }
+          }
+          setStatusMessage(`Deleted ${target.split('/').pop()}`)
+          await loadTree()
+          await refreshGitStatus()
+          setDeleteTarget(null)
+        } catch (error) {
+          setStatusMessage(humanizeError(error, 'Could not delete.'))
         }
       }
-      setStatusMessage(`Deleted ${deleteTarget.split('/').pop()}`)
-      await loadTree()
-      await refreshGitStatus()
-    } catch (error) {
-      setStatusMessage(humanizeError(error, 'Could not delete.'))
-    }
-    setDeleteTarget(null)
+    })
   }
 
   const handleSearch = async () => {
@@ -815,6 +846,17 @@ export function IDE(): React.JSX.Element {
       setPendingGitAction(null)
     } finally {
       setApprovalBusy(false)
+    }
+  }
+
+  const handleApprovedFilesystemAction = async () => {
+    if (!pendingFilesystemAction) return
+    try {
+      setFilesystemApprovalBusy(true)
+      await pendingFilesystemAction.approve()
+      setPendingFilesystemAction(null)
+    } finally {
+      setFilesystemApprovalBusy(false)
     }
   }
 
@@ -1335,8 +1377,8 @@ export function IDE(): React.JSX.Element {
               Are you sure you want to delete <strong className="text-text-main">{deleteTarget.split('/').pop()}</strong>? This cannot be undone.
             </p>
             <div className="mt-4 flex items-center justify-end gap-2">
-              <button onClick={() => setDeleteTarget(null)} className="rounded-md border border-border px-3 py-1.5 text-xs text-text-secondary hover:text-text-main cursor-pointer">Cancel</button>
-              <button onClick={() => void confirmDelete()} className="rounded-md bg-danger px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90 cursor-pointer">Delete</button>
+              <button data-testid="ide-delete-cancel-btn" onClick={() => setDeleteTarget(null)} className="rounded-md border border-border px-3 py-1.5 text-xs text-text-secondary hover:text-text-main cursor-pointer">Cancel</button>
+              <button data-testid="ide-delete-confirm-btn" onClick={() => void confirmDelete()} className="rounded-md bg-danger px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90 cursor-pointer">Delete</button>
             </div>
           </div>
         </div>
@@ -1363,6 +1405,17 @@ export function IDE(): React.JSX.Element {
         onReject={() => {
           if (approvalBusy) return
           setPendingGitAction(null)
+        }}
+      />
+      <ApprovalGate
+        actionLabel={pendingFilesystemAction?.actionLabel || 'Modify local filesystem'}
+        description={pendingFilesystemAction?.description || 'This will modify files in the active repository.'}
+        isOpen={pendingFilesystemAction !== null}
+        isBusy={filesystemApprovalBusy}
+        onApprove={() => void handleApprovedFilesystemAction()}
+        onReject={() => {
+          if (filesystemApprovalBusy) return
+          setPendingFilesystemAction(null)
         }}
       />
     </>
