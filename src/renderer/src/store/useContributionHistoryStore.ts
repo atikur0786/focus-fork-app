@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { appPersistStorage } from './app-persist-storage'
 
 export interface LocalContributionEvent {
   id: string
@@ -42,7 +43,7 @@ export const useContributionHistoryStore = create<ContributionHistoryState>()(
         })),
       clear: () => set({ events: [] })
     }),
-    { name: 'contribution-history' }
+    { name: 'contribution-history', storage: appPersistStorage }
   )
 )
 

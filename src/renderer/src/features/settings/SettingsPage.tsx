@@ -550,8 +550,8 @@ export const SettingsPage = () => {
                     <span aria-hidden>·</span>
                     <button
                         type="button"
-                        onClick={() => {
-                            localStorage.removeItem('focusfork-onboarding-complete')
+                        onClick={async () => {
+                            await window.api.appStorage.removeItem('focusfork-onboarding-complete')
                             setView('issues')
                             window.location.reload()
                         }}

@@ -145,6 +145,8 @@ const DEMO_FILES: Record<string, string> = {
   [`${DEMO_REPO_ROOT}/docs/hydration.md`]: '# Hydration\n\nHow persisted state is restored on startup.\n'
 }
 
+const demoAppStorage = new Map<string, string>()
+
 const DIR_LISTING: Record<string, { name: string; isDirectory: boolean }[]> = {
   [DEMO_REPO_ROOT]: [
     { name: 'src', isDirectory: true },
@@ -191,6 +193,15 @@ const mockAiChat = async (payload: { messages: Array<{ role: string; content: st
 }
 
 const api = {
+  appStorage: {
+    getItem: async (key: string) => demoAppStorage.get(key) ?? null,
+    setItem: async (key: string, value: string) => {
+      demoAppStorage.set(key, value)
+    },
+    removeItem: async (key: string) => {
+      demoAppStorage.delete(key)
+    }
+  },
   auth: {
     login: async () => {
       await delay(400)
@@ -420,16 +431,16 @@ export function installBrowserMock(): void {
   w.api = api
 
   // Seed a demo workspace + selected issue so the full IDE renders for review.
-  if (!localStorage.getItem('settings-storage')) {
-    localStorage.setItem(
+  if (!demoAppStorage.get('settings-storage')) {
+    demoAppStorage.set(
       'settings-storage',
       JSON.stringify({ state: { workspaceRoot: '/Users/demo/workspace', activeRepoPath: DEMO_REPO_ROOT, preferredEditorId: 'vscode' }, version: 0 })
     )
-    localStorage.setItem(
+    demoAppStorage.set(
       'issue-storage',
       JSON.stringify({ state: { selectedIssue: DEMO_ISSUES[0] }, version: 0 })
     )
-    localStorage.setItem('focusfork-onboarding-complete', 'true')
+    demoAppStorage.set('focusfork-onboarding-complete', 'true')
   }
   w.gitAPI = {
     clone: api.git.clone,

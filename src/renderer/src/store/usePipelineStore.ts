@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Issue } from './useIssueStore'
+import { appPersistStorage } from './app-persist-storage'
 
 /**
  * The contribution pipeline: every issue the user engages with becomes a
@@ -87,6 +88,6 @@ export const usePipelineStore = create<PipelineState>()(
           return { entries }
         })
     }),
-    { name: 'contribution-pipeline' }
+    { name: 'contribution-pipeline', storage: appPersistStorage }
   )
 )

@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { View } from './useUIStore'
+import { appPersistStorage } from './app-persist-storage'
 
 export type TabActivityStatus = 'idle' | 'working' | 'success' | 'error'
 
@@ -49,6 +50,7 @@ export const useTabActivityStore = create<TabActivityState>()(
     }),
     {
       name: 'tab-activity-storage',
+      storage: appPersistStorage,
       partialize: (state) => ({
         byTab: Object.fromEntries(
           Object.entries(state.byTab).filter(([, activity]) => activity.status !== 'working')

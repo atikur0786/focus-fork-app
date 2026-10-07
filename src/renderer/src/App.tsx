@@ -43,7 +43,7 @@ function App(): React.JSX.Element {
   }, [isAuthenticated, authMode])
 
   // One-time migration: if a legacy plaintext API key was persisted in
-  // localStorage by an older version, move it into OS secure storage in the
+  // renderer storage by an older version, move it into OS secure storage in the
   // main process, then wipe it from the renderer.
   useEffect(() => {
     if (!apiKey) return

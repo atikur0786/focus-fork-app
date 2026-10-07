@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { appPersistStorage } from './app-persist-storage'
 
 export interface Issue {
   id: number
@@ -59,7 +60,8 @@ export const useIssueStore = create<IssueState>()(
       })
     }),
     {
-      name: 'issue-storage'
+      name: 'issue-storage',
+      storage: appPersistStorage
     }
   )
 )

@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { appPersistStorage } from './app-persist-storage'
 
 export type View = 'issues' | 'settings' | 'contributions' | 'usage' | 'ide' | 'chat'
 
@@ -26,6 +27,7 @@ export const useUIStore = create<UIState>()(
     }),
     {
       name: 'ui-storage',
+      storage: appPersistStorage,
       version: 3,
       migrate: (persistedState: any, version: number) => {
         const allowed: View[] = ['issues', 'settings', 'contributions', 'usage', 'ide', 'chat']

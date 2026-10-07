@@ -47,11 +47,12 @@ const mockContribution = {
 const registerDesktopMocks = async (page: import('@playwright/test').Page) => {
   await page.addInitScript(
     ({ issue, contribution }) => {
+      const appStorage = new Map<string, string>()
       const setPersistedState = (key: string, state: unknown, version = 1) => {
-        localStorage.setItem(key, JSON.stringify({ state, version }))
+        appStorage.set(key, JSON.stringify({ state, version }))
       }
 
-      localStorage.setItem('focusfork-onboarding-complete', 'true')
+      appStorage.set('focusfork-onboarding-complete', 'true')
 
       ;(window as any).electron = {
         ipcRenderer: {
@@ -88,6 +89,15 @@ const registerDesktopMocks = async (page: import('@playwright/test').Page) => {
       }
 
       ;(window as any).api = {
+        appStorage: {
+          getItem: async (key: string) => appStorage.get(key) ?? null,
+          setItem: async (key: string, value: string) => {
+            appStorage.set(key, value)
+          },
+          removeItem: async (key: string) => {
+            appStorage.delete(key)
+          }
+        },
         auth: {
           check: async () => true,
           login: async () => true,
@@ -221,6 +231,11 @@ test.describe('golden path shell', () => {
     await page.addInitScript(() => {
       ;(window as any).electron = { ipcRenderer: { invoke: async () => ({ model: 'openai/gpt-4o-mini' }) } }
       ;(window as any).api = {
+        appStorage: {
+          getItem: async () => null,
+          setItem: async () => undefined,
+          removeItem: async () => undefined
+        },
         auth: {
           check: async () => false,
           login: async () => true,

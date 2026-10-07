@@ -13,6 +13,7 @@ import { ptyService } from './services/pty'
 import { aiService } from './services/ai'
 import { aiConfigService } from './services/ai-config'
 import { platformService } from './services/platform'
+import { rendererStorageService } from './services/renderer-storage'
 import { vscodeBridge } from './vscode-bridge'
 import { gitBridge } from './git-bridge'
 import { normalizeIssueSearchPayload } from '../shared/issue-search-types'
@@ -400,6 +401,7 @@ app.whenReady().then(() => {
   gitService.setGitHubToken(authService.getToken())
   platformService.initialize()
   platformService.onSessionChange(() => broadcastBackendSession())
+  rendererStorageService.initialize()
 
   aiConfigService.initialize()
   {
@@ -419,6 +421,12 @@ app.whenReady().then(() => {
   })
 
   ipcMain.on('ping', () => console.log('pong'))
+
+  ipcMain.handle('app-storage:get', (_, key) => rendererStorageService.getItem(assertString(key, 'key')))
+  ipcMain.handle('app-storage:set', (_, payload) => {
+    rendererStorageService.setItem(assertString(payload?.key, 'key'), assertPlainString(payload?.value, 'value'))
+  })
+  ipcMain.handle('app-storage:remove', (_, key) => rendererStorageService.removeItem(assertString(key, 'key')))
 
   ipcMain.handle('auth:login', async () => {
     const ok = await authService.login()

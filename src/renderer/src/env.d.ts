@@ -87,6 +87,12 @@ interface AppAPI {
   }>
 }
 
+interface AppStorageAPI {
+  getItem: (key: string) => Promise<string | null>
+  setItem: (key: string, value: string) => Promise<void>
+  removeItem: (key: string) => Promise<void>
+}
+
 interface TerminalAPI {
   create: (payload: {
     id: string
@@ -143,6 +149,7 @@ interface Window {
     readFile: (path: string) => Promise<string>
   }
   api: {
+    appStorage: AppStorageAPI
     auth: AuthAPI
     github: GitHubAPI
     fs: FileSystemAPI

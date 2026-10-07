@@ -6,6 +6,11 @@ ipcRenderer.on('focusfork:ai-chat-ack', (_event, payload) => {
 })
 
 const api = {
+  appStorage: {
+    getItem: (key: string): Promise<string | null> => ipcRenderer.invoke('app-storage:get', key),
+    setItem: (key: string, value: string): Promise<void> => ipcRenderer.invoke('app-storage:set', { key, value }),
+    removeItem: (key: string): Promise<void> => ipcRenderer.invoke('app-storage:remove', key)
+  },
   auth: {
     login: (): Promise<boolean> => ipcRenderer.invoke('auth:login'),
     check: (): Promise<boolean> => ipcRenderer.invoke('auth:check'),

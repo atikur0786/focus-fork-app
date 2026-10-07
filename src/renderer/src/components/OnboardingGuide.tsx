@@ -21,19 +21,22 @@ export function useOnboarding() {
   const [showOnboarding, setShowOnboarding] = useState(false)
 
   useEffect(() => {
-    const completed = localStorage.getItem(STORAGE_KEY)
-    if (!completed) {
-      setShowOnboarding(true)
+    let cancelled = false
+    void window.api.appStorage.getItem(STORAGE_KEY).then((completed) => {
+      if (!cancelled && !completed) setShowOnboarding(true)
+    })
+    return () => {
+      cancelled = true
     }
   }, [])
 
   const completeOnboarding = useCallback(() => {
-    localStorage.setItem(STORAGE_KEY, 'true')
+    void window.api.appStorage.setItem(STORAGE_KEY, 'true')
     setShowOnboarding(false)
   }, [])
 
   const resetOnboarding = useCallback(() => {
-    localStorage.removeItem(STORAGE_KEY)
+    void window.api.appStorage.removeItem(STORAGE_KEY)
     setShowOnboarding(true)
   }, [])
 

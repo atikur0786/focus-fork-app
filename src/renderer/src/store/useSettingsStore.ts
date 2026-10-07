@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { appPersistStorage } from './app-persist-storage'
 
 interface SettingsState {
   workspaceRoot: string | null
@@ -33,6 +34,7 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: 'settings-storage',
+      storage: appPersistStorage,
       version: 2,
       migrate: (persistedState: unknown) => {
         const state = (persistedState ?? {}) as Record<string, unknown>

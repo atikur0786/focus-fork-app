@@ -74,12 +74,13 @@ async function main() {
 
     // Skip onboarding if it appears, then seed the workspace root like the
     // Settings folder picker would.
-    await page.evaluate((ws) => {
-      localStorage.setItem('focusfork-onboarding-complete', 'true')
-      const raw = localStorage.getItem('settings-storage')
+    await page.evaluate(async (ws) => {
+      const storage = (window as any).api.appStorage
+      await storage.setItem('focusfork-onboarding-complete', 'true')
+      const raw = await storage.getItem('settings-storage')
       const parsed = raw ? JSON.parse(raw) : { state: {}, version: 0 }
       parsed.state = { ...parsed.state, workspaceRoot: ws, activeRepoPath: null }
-      localStorage.setItem('settings-storage', JSON.stringify(parsed))
+      await storage.setItem('settings-storage', JSON.stringify(parsed))
       location.reload()
     }, workspace)
     await page.waitForLoadState('domcontentloaded')
@@ -132,8 +133,8 @@ async function main() {
 
     // ---- Step 5: edit a file (real fs write through the app bridge) ------
     log('step 5: edit README through the app fs bridge')
-    const repoPath = await page.evaluate(() => {
-      const raw = localStorage.getItem('settings-storage')
+    const repoPath = await page.evaluate(async () => {
+      const raw = await (window as any).api.appStorage.getItem('settings-storage')
       return raw ? JSON.parse(raw).state.activeRepoPath : null
     })
     if (!repoPath) throw new Error('activeRepoPath not set after clone')

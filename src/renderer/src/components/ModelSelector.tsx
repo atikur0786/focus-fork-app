@@ -140,7 +140,7 @@ export function ModelSelector({
   const [open, setOpen] = useState(false)
   const [providerFilter, setProviderFilter] = useState<string | null>(null)
   const [search, setSearch] = useState('')
-  const [favoriteIds, setFavoriteIds] = useState<string[]>(() => getFavoriteModelIds())
+  const [favoriteIds, setFavoriteIds] = useState<string[]>([])
   const [panelStyle, setPanelStyle] = useState<React.CSSProperties>({})
 
   const selected = options.find((option) => option.id === value)
@@ -156,6 +156,16 @@ export function ModelSelector({
     () => options.filter((option) => favoriteIds.includes(option.id)),
     [options, favoriteIds]
   )
+
+  useEffect(() => {
+    let cancelled = false
+    void getFavoriteModelIds().then((ids) => {
+      if (!cancelled) setFavoriteIds(ids)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const filteredOptions = useMemo(() => {
     const query = search.trim().toLowerCase()
@@ -215,7 +225,7 @@ export function ModelSelector({
   }
 
   const handleToggleFavorite = (modelId: string) => {
-    setFavoriteIds(toggleFavoriteModel(modelId))
+    void toggleFavoriteModel(modelId).then(setFavoriteIds)
   }
 
   const triggerLabel = selected?.label || value || 'Select model'
@@ -301,7 +311,7 @@ export function ModelSelector({
                     key={`fav-${option.id}`}
                     option={option}
                     selected={option.id === value}
-                    favorite={isFavoriteModel(option.id)}
+                    favorite={isFavoriteModel(option.id, favoriteIds)}
                     onSelect={() => handleSelect(option.id)}
                     onToggleFavorite={() => handleToggleFavorite(option.id)}
                   />

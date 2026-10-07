@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { appPersistStorage } from './app-persist-storage'
 
 export type WorkflowStep =
   | 'discover'
@@ -124,6 +125,7 @@ export const useWorkflowEngineStore = create<WorkflowEngineState>()(
     }),
     {
       name: 'workflow-engine-storage',
+      storage: appPersistStorage,
       version: 1
     }
   )

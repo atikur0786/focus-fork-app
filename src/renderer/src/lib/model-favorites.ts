@@ -1,8 +1,7 @@
 const STORAGE_KEY = 'focusfork-favorite-models'
 
-function readIds(): string[] {
+function parseIds(raw: string | null): string[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return []
     const parsed = JSON.parse(raw) as unknown
     if (!Array.isArray(parsed)) return []
@@ -12,17 +11,17 @@ function readIds(): string[] {
   }
 }
 
-export function getFavoriteModelIds(): string[] {
-  return readIds()
+export async function getFavoriteModelIds(): Promise<string[]> {
+  return parseIds(await window.api.appStorage.getItem(STORAGE_KEY))
 }
 
-export function isFavoriteModel(modelId: string): boolean {
-  return readIds().includes(modelId)
+export function isFavoriteModel(modelId: string, favoriteIds: string[]): boolean {
+  return favoriteIds.includes(modelId)
 }
 
-export function toggleFavoriteModel(modelId: string): string[] {
-  const current = readIds()
+export async function toggleFavoriteModel(modelId: string): Promise<string[]> {
+  const current = await getFavoriteModelIds()
   const next = current.includes(modelId) ? current.filter((id) => id !== modelId) : [...current, modelId]
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
+  await window.api.appStorage.setItem(STORAGE_KEY, JSON.stringify(next))
   return next
 }

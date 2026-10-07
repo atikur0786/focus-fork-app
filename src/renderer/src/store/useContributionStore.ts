@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { appPersistStorage } from './app-persist-storage'
 import {
   ContributionStep,
   StepStatus,
@@ -189,6 +190,7 @@ export const useContributionStore = create<ContributionState>()(
     }),
     {
       name: 'contribution-workflow-storage',
+      storage: appPersistStorage,
       version: 2,
       migrate: (persisted) => {
         const state = persisted as Partial<ContributionState> & {

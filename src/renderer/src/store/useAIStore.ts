@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { appPersistStorage } from './app-persist-storage'
 
 export interface PersistedChatMessage {
   role: 'user' | 'model'
@@ -117,10 +118,11 @@ export const useAIStore = create<AIState>()(
     }),
     {
       name: 'ai-storage',
+      storage: appPersistStorage,
       version: 6,
       // SECURITY: apiKey is intentionally excluded from persistence. Keys live
       // encrypted in the main process (Electron safeStorage), never in
-      // localStorage. The in-memory apiKey field only carries a legacy key
+      // renderer storage. The in-memory apiKey field only carries a legacy key
       // during one-time migration (see App.tsx).
       partialize: (state) =>
         Object.fromEntries(
