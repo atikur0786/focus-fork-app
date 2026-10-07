@@ -231,7 +231,7 @@ export function AIChatPanel({
   const { model, setModel, billingPlan, modelSelectorOptions } = useManagedModelCatalog()
   const user = useAuthStore((state) => state.user)
   const [reconnectBusy, setReconnectBusy] = useState(false)
-  const [pushAfterApply, setPushAfterApply] = useState(true)
+  const [pushAfterApply, setPushAfterApply] = useState(false)
   const storedSessions = useMemo(
     () => getConversationKeys().filter(sessionInScope),
     [getConversationKeys, isGeneralChat, issueNumber, repoFullName, repoPath]
@@ -1072,8 +1072,12 @@ export function AIChatPanel({
       </div>
 
       <ApprovalGate
-        actionLabel={`Apply ${pendingEdits?.length || 0} AI-proposed file change${pendingEdits?.length === 1 ? '' : 's'}`}
-        description="Review the diffs below. Large changes can be opened in the preview panel or your IDE before you approve."
+        actionLabel={`${pushAfterApply ? 'Apply, commit, and push' : 'Apply'} ${pendingEdits?.length || 0} AI-proposed file change${pendingEdits?.length === 1 ? '' : 's'}`}
+        description={
+          pushAfterApply
+            ? 'Review the diffs below. Approving will write the files, create a commit, and push the branch to your fork.'
+            : 'Review the diffs below. Approving will write the files locally only.'
+        }
         isOpen={Boolean(pendingEdits?.length)}
         isBusy={applyBusy}
         size="wide"

@@ -192,6 +192,7 @@ export function EditApprovalReview({
                   {forkLogin && upstreamRepoFullName && (
                     <button
                       type="button"
+                      data-testid={`approval-edit-fork-${edit.relativePath}`}
                       onClick={() =>
                         void window.api.openExternal(
                           githubForkBlobUrl(forkLogin, upstreamRepoFullName, branch, edit.relativePath)
@@ -220,7 +221,12 @@ export function EditApprovalReview({
                       </p>
                       <DiffBlock before={preview.before} after={preview.after} maxRows={INLINE_PREVIEW_ROWS} compact />
                       {onOpenInIde && (
-                        <button type="button" onClick={onOpenInIde} className="btn-secondary text-xs">
+                        <button
+                          type="button"
+                          data-testid="approval-edit-open-ide"
+                          onClick={onOpenInIde}
+                          className="btn-secondary text-xs"
+                        >
                           <Laptop size={14} />
                           Open in IDE
                         </button>
