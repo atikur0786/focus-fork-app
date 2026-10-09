@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0-beta.5",
-  "notes": "Beta update: stronger issue-to-PR agent workflow, safer approval gates, improved model routing, encrypted BYOK AI settings, and workflow stability fixes.",
+  "version": "0.1.0-beta.6",
+  "notes": "Beta update: agents now treat bring-your-own-key AI as a first-class path, so Gemini/OpenRouter/OpenAI/Anthropic users can run the issue-to-PR workflow without the FocusFork backend. Adds stronger workflow readiness, recovery guidance, approval-boundary checks, and agent context for safer manual testing.",
   "download_url": "https://github.com/atikur0786/focus-fork-app/releases"
 }
