@@ -31,12 +31,20 @@ export interface AgentAuthContext {
   backendConnected: boolean
 }
 
+export interface AgentAIContext {
+  mode: 'byok' | 'subscription'
+  provider: string | null
+  hasKey: boolean
+  model: string | null
+}
+
 export interface AgentContext {
   selectedModelId: string
   currentStep: WorkflowStep
   issue: AgentIssueContext | null
   repo: AgentRepoContext
   auth: AgentAuthContext
+  ai: AgentAIContext
   timeline: Array<{
     id: string
     at: string
@@ -62,8 +70,33 @@ export const defaultContext: AgentContext = {
     userLogin: null,
     backendConnected: false
   },
+  ai: {
+    mode: 'byok',
+    provider: 'openrouter',
+    hasKey: false,
+    model: AGENT_DEFAULT_MODEL_ID
+  },
   timeline: [],
   metadata: {}
+}
+
+export const isAgentAIReady = (ctx: AgentContext): boolean => {
+  if (ctx.ai.mode === 'subscription') return ctx.auth.backendConnected
+  return Boolean(ctx.ai.hasKey && ctx.ai.provider)
+}
+
+export const describeAgentAIReadiness = (ctx: AgentContext): string => {
+  if (ctx.ai.mode === 'subscription') {
+    return ctx.auth.backendConnected
+      ? `Subscription router ready (${ctx.selectedModelId}).`
+      : 'Subscription router is not connected.'
+  }
+
+  if (ctx.ai.hasKey && ctx.ai.provider) {
+    return `BYOK ready via ${ctx.ai.provider}${ctx.ai.model ? ` (${ctx.ai.model})` : ''}.`
+  }
+
+  return 'BYOK is selected but no provider key is saved yet.'
 }
 
 export const buildAgentMissionPacket = (ctx: AgentContext): string => {
@@ -88,6 +121,14 @@ export const buildAgentMissionPacket = (ctx: AgentContext): string => {
     `Backend connected: ${ctx.auth.backendConnected ? 'yes' : 'no'}`
   ].join('\n')
 
+  const ai = [
+    `AI mode: ${ctx.ai.mode}`,
+    `AI provider: ${ctx.ai.provider || 'unknown'}`,
+    `AI model: ${ctx.ai.model || ctx.selectedModelId}`,
+    `Provider key saved: ${ctx.ai.hasKey ? 'yes' : 'no'}`,
+    `AI readiness: ${describeAgentAIReadiness(ctx)}`
+  ].join('\n')
+
   const timeline = ctx.timeline.length
     ? ctx.timeline
         .slice(-8)
@@ -105,6 +146,8 @@ export const buildAgentMissionPacket = (ctx: AgentContext): string => {
     repo,
     '',
     auth,
+    '',
+    ai,
     '',
     'Recent workflow timeline:',
     timeline

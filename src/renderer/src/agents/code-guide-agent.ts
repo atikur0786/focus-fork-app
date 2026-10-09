@@ -1,5 +1,6 @@
 import type { AgentContext } from './agent-context'
 import { buildAgentMissionPacket } from './agent-context'
+import { reviewerAgent } from './reviewer-agent'
 import { AnalyzeIssueError, humanizeAiChatResult, isAiFailure, type AiChatResult } from '../lib/ai-errors'
 
 export interface AnalyzeIssueInput {
@@ -11,12 +12,17 @@ export interface AnalyzeIssueInput {
 }
 
 const buildAnalysisPrompt = (ctx: AgentContext, input: AnalyzeIssueInput): string => {
+  const currentStepReadiness = reviewerAgent.summarizeNextAction(ctx.currentStep, ctx)
+
   return [
     'You are the FocusFork Code Guide agent.',
     'Operate like a careful open-source maintainer pairing with a human contributor inside a desktop app.',
     'Your job is to turn the selected issue into a contribution plan the user can trust, claim, implement, review, and ship.',
     '',
     buildAgentMissionPacket(ctx),
+    '',
+    'Deterministic workflow gate:',
+    currentStepReadiness,
     '',
     'Fresh issue input:',
     `Title: ${input.issueTitle}`,
@@ -31,13 +37,15 @@ const buildAnalysisPrompt = (ctx: AgentContext, input: AnalyzeIssueInput): strin
     '## Contribution Guide',
     '- Identify likely repo docs to read first, conventions to follow, and how to avoid scope creep.',
     '## Work Plan',
-    '- Give 3-6 concrete steps from local inspection to implementation.',
+    '- Give 3-6 concrete steps from local inspection to implementation. Include the next safest app action.',
     '## Files To Inspect',
     '- List likely files or search terms. Say when this is an inference.',
     '## Verification',
     '- List exact tests, build checks, or manual checks to run.',
     '## Human Checkpoints',
     '- Name each action that must wait for user approval: claim comment, fork, clone, filesystem writes, commit, push, PR.',
+    '## Recovery',
+    '- If any prerequisite is missing, tell the user exactly how to recover inside FocusFork.',
     '## Risks',
     '- List blockers or assumptions that could make the plan wrong.',
     '',

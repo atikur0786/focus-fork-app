@@ -11,6 +11,7 @@ import { Issue } from '../../store/useIssueStore'
 import { useContributionStore } from '../../store/useContributionStore'
 import { useWorkflowEngineStore } from '../../store/useWorkflowEngineStore'
 import { useAIStore } from '../../store/useAIStore'
+import { useAIModeStore } from '../../store/useAIModeStore'
 import { ApprovalGate } from '../../components/ApprovalGate'
 import { AiErrorNotice } from '../../components/AiErrorNotice'
 import { ChatMarkdown } from '../../components/ChatMarkdown'
@@ -112,6 +113,7 @@ export const IssueBrowser = () => {
     const { initializeForIssue, updateStep, addActivity } = useContributionStore()
     const { currentStep, bindIssue, transition, failStep } = useWorkflowEngineStore()
     const { model: selectedModelId } = useAIStore()
+    const { mode: aiMode, provider: aiProvider, hasKey: aiHasKey, model: aiConfiguredModel } = useAIModeStore()
     const setTabActivity = useTabActivityStore((state) => state.setTabActivity)
 
     useEffect(() => {
@@ -274,6 +276,12 @@ export const IssueBrowser = () => {
             isAuthenticated,
             userLogin: user?.login || null,
             backendConnected
+        },
+        ai: {
+            mode: aiMode,
+            provider: aiProvider || null,
+            hasKey: aiHasKey,
+            model: aiConfiguredModel || selectedModelId
         },
         timeline: [],
         metadata: {}

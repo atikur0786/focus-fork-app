@@ -17,11 +17,55 @@ const buildContext = (overrides: Partial<AgentContext> = {}): AgentContext => ({
   issue: overrides.issue === undefined ? defaultContext.issue : overrides.issue
 })
 
-test('reviewer blocks discovery until auth and backend are ready', () => {
+test('reviewer blocks discovery until auth and AI provider are ready', () => {
   const result = reviewerAgent.validateStep('discover', buildContext())
 
   assert.equal(result.ok, false)
-  assert.deepEqual(result.errors, ['User is not authenticated.', 'Backend session is not connected.'])
+  assert.deepEqual(result.errors, [
+    'User is not authenticated.',
+    'BYOK is selected but no provider key is saved yet.'
+  ])
+  assert.deepEqual(result.recovery, [
+    'Sign in with GitHub, then retry the step.',
+    'Open Settings, choose an AI provider, save that provider API key, then retry.'
+  ])
+})
+
+test('reviewer allows BYOK discovery without backend when provider key is saved', () => {
+  const result = reviewerAgent.validateStep(
+    'discover',
+    buildContext({
+      auth: { isAuthenticated: true, userLogin: 'atikur0786', backendConnected: false },
+      ai: {
+        mode: 'byok',
+        provider: 'gemini',
+        hasKey: true,
+        model: 'gemini-2.0-flash'
+      }
+    })
+  )
+
+  assert.equal(result.ok, true)
+  assert.deepEqual(result.errors, [])
+})
+
+test('reviewer requires backend for subscription discovery', () => {
+  const result = reviewerAgent.validateStep(
+    'discover',
+    buildContext({
+      auth: { isAuthenticated: true, userLogin: 'atikur0786', backendConnected: false },
+      ai: {
+        mode: 'subscription',
+        provider: 'openrouter',
+        hasKey: false,
+        model: 'meta-llama/llama-3.3-70b-instruct:free'
+      }
+    })
+  )
+
+  assert.equal(result.ok, false)
+  assert.deepEqual(result.errors, ['Subscription router is not connected.'])
+  assert.deepEqual(result.recovery, ['Reconnect the FocusFork backend session or switch to BYOK in Settings.'])
 })
 
 test('reviewer requires selected issue repository, title, and number', () => {
@@ -70,4 +114,20 @@ test('reviewer accepts an issue branch with a local repo', () => {
 
   assert.equal(result.ok, true)
   assert.deepEqual(result.errors, [])
+})
+
+test('reviewer reports approval boundaries for PR creation', () => {
+  const result = reviewerAgent.validateStep(
+    'pr_created',
+    buildContext({
+      issue: {
+        number: 42,
+        title: 'Fix loading state',
+        repoFullName: 'focusfork/demo'
+      }
+    })
+  )
+
+  assert.equal(result.ok, true)
+  assert.deepEqual(result.approvalsRequired, ['filesystem-write', 'commit', 'push', 'pull-request'])
 })

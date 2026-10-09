@@ -28,6 +28,7 @@ import { useSettingsStore } from '../../store/useSettingsStore'
 import { useIssueStore } from '../../store/useIssueStore'
 import { useUIStore } from '../../store/useUIStore'
 import { useAIStore } from '../../store/useAIStore'
+import { useAIModeStore } from '../../store/useAIModeStore'
 import { useWorkflowEngineStore } from '../../store/useWorkflowEngineStore'
 import { useContributionStore } from '../../store/useContributionStore'
 import { trackContributionEvent } from '../../store/useContributionHistoryStore'
@@ -117,6 +118,7 @@ export function IDE(): React.JSX.Element {
   const { selectedIssue } = useIssueStore()
   const { setView } = useUIStore()
   const selectedModelId = useAIStore((state) => state.model)
+  const { mode: aiMode, provider: aiProvider, hasKey: aiHasKey, model: aiConfiguredModel } = useAIModeStore()
   const { user, isAuthenticated, backendConnected } = useAuthStore()
   const { steps, activityTimeline, updateStep, addActivity } = useContributionStore()
   const { currentStep, transition, failStep } = useWorkflowEngineStore()
@@ -338,6 +340,12 @@ export function IDE(): React.JSX.Element {
       isAuthenticated,
       userLogin: user?.login || null,
       backendConnected
+    },
+    ai: {
+      mode: aiMode,
+      provider: aiProvider || null,
+      hasKey: aiHasKey,
+      model: aiConfiguredModel || selectedModelId
     },
     timeline: activityTimeline.map((item) => ({
       id: item.id,
