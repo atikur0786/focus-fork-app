@@ -1,6 +1,6 @@
 {
   "name": "focus-fork",
-  "version": "0.1.0-beta.4",
+  "version": "0.1.0-beta.5",
   "description": "Open-source desktop bridge between contributors and open-source repos: discover issues, fork, clone, edit with AI, and ship PRs.",
   "main": "./out/main/index.js",
   "author": "FocusFork contributors",
