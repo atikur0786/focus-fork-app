@@ -11,11 +11,6 @@ export class FocusForkApiClient {
     return value.replace(/\/$/, '')
   }
 
-  private get accessToken(): string {
-    const cfg = vscode.workspace.getConfiguration('focusfork')
-    return String(cfg.get('accessToken') ?? '').trim()
-  }
-
   async get(path: string): Promise<Json> {
     return this.request('GET', path)
   }
@@ -28,8 +23,9 @@ export class FocusForkApiClient {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json'
     }
-    if (this.accessToken) {
-      headers.Authorization = `Bearer ${this.accessToken}`
+    const accessToken = await this.context.secrets.get('accessToken')
+    if (accessToken) {
+      headers.Authorization = `Bearer ${accessToken}`
     }
 
     const response = await fetch(`${this.backendUrl}${path}`, {

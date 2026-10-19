@@ -14,17 +14,16 @@ type PullRequest = {
 }
 
 export class GitHubClient {
-  private get token(): string {
-    return String(vscode.workspace.getConfiguration('focusfork').get('githubToken') ?? '').trim()
-  }
+  constructor(private readonly context: vscode.ExtensionContext) {}
 
-  private get headers(): Record<string, string> {
-    if (!this.token) {
-      throw new Error('Missing focusfork.githubToken. Configure it in settings.')
+  private async getHeaders(): Promise<Record<string, string>> {
+    const token = await this.context.secrets.get('githubToken')
+    if (!token) {
+      throw new Error('Missing GitHub token. Run FocusFork: Setup Auth Tokens.')
     }
     return {
       Accept: 'application/vnd.github+json',
-      Authorization: `Bearer ${this.token}`,
+      Authorization: `Bearer ${token}`,
       'X-GitHub-Api-Version': '2022-11-28'
     }
   }
@@ -32,7 +31,7 @@ export class GitHubClient {
   private async request<T>(method: 'GET' | 'POST', path: string, body?: unknown): Promise<T> {
     const response = await fetch(`https://api.github.com${path}`, {
       method,
-      headers: this.headers,
+      headers: await this.getHeaders(),
       body: body ? JSON.stringify(body) : undefined
     })
     const data = (await response.json().catch(() => ({}))) as T & { message?: string }

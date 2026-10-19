@@ -8,8 +8,19 @@ import { ContributionsTreeProvider, WorkflowTreeProvider } from './views/workflo
 import { FocusForkState, SelectedIssue } from './state'
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
+  // Store legacy global credentials securely before removing their plaintext copies.
+  const legacyConfig = vscode.workspace.getConfiguration('focusfork')
+  for (const key of ['accessToken', 'githubToken']) {
+    const legacyToken = legacyConfig.inspect<string>(key)?.globalValue?.trim()
+    if (legacyToken) {
+      if (!(await context.secrets.get(key))) {
+        await context.secrets.store(key, legacyToken)
+      }
+      await legacyConfig.update(key, undefined, vscode.ConfigurationTarget.Global)
+    }
+  }
   const apiClient = new FocusForkApiClient(context)
-  const githubClient = new GitHubClient()
+  const githubClient = new GitHubClient(context)
   const state = new FocusForkState(context)
   const workflowProvider = new WorkflowTreeProvider(apiClient)
   const contributionsProvider = new ContributionsTreeProvider(apiClient)
@@ -140,8 +151,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       if (!githubToken) return
 
       await cfg.update('backendUrl', backendUrl.trim(), vscode.ConfigurationTarget.Global)
-      await cfg.update('accessToken', accessToken.trim(), vscode.ConfigurationTarget.Global)
-      await cfg.update('githubToken', githubToken.trim(), vscode.ConfigurationTarget.Global)
+      await context.secrets.store('accessToken', accessToken.trim())
+      await context.secrets.store('githubToken', githubToken.trim())
       vscode.window.showInformationMessage('FocusFork auth configuration saved.')
       workflowProvider.refresh()
       contributionsProvider.refresh()

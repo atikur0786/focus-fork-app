@@ -139,20 +139,22 @@
           "default": "http://localhost:8080",
           "description": "FocusFork backend base URL."
         },
-        "focusfork.accessToken": {
-          "type": "string",
-          "default": "",
-          "description": "FocusFork backend access token for API requests."
-        },
         "focusfork.defaultModel": {
           "type": "string",
           "default": "openai/gpt-4o-mini",
           "description": "Default model to use for AI assistant."
         },
+        "focusfork.accessToken": {
+          "type": "string",
+          "default": "",
+          "scope": "application",
+          "deprecationMessage": "Migrated to SecretStorage. Use FocusFork: Setup Auth Tokens instead."
+        },
         "focusfork.githubToken": {
           "type": "string",
           "default": "",
-          "description": "GitHub token with repo scope used for fork/PR commands."
+          "scope": "application",
+          "deprecationMessage": "Migrated to SecretStorage. Use FocusFork: Setup Auth Tokens instead."
         }
       }
     }
