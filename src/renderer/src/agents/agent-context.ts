@@ -105,7 +105,7 @@ export const buildAgentMissionPacket = (ctx: AgentContext): string => {
         `Issue: ${ctx.issue.title || 'untitled'}`,
         `Issue number: ${ctx.issue.number || 'unknown'}`,
         `Repository: ${ctx.issue.repoFullName || 'unknown'}`,
-        ctx.issue.body ? `Issue body: ${ctx.issue.body.slice(0, 2500)}` : ''
+        ctx.issue.body ? `Issue body: ${ctx.issue.body}` : ''
       ].filter(Boolean).join('\n')
     : 'Issue: none selected'
 

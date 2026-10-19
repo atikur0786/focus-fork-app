@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer, shell } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
+import type { GitHubRequestWarning } from '../shared/agent-boundaries'
 
 ipcRenderer.on('focusfork:ai-chat-ack', (_event, payload) => {
   console.info('[FocusFork Preload] main process acknowledged AI chat IPC', payload)
@@ -19,6 +20,11 @@ const api = {
       ipcRenderer.invoke('auth:config-status')
   },
   github: {
+    onRequestWarning: (callback: (warning: GitHubRequestWarning) => void): (() => void) => {
+      const handler = (_event: Electron.IpcRendererEvent, warning: GitHubRequestWarning) => callback(warning)
+      ipcRenderer.on('github:request-warning', handler)
+      return () => { ipcRenderer.removeListener('github:request-warning', handler) }
+    },
     search: (payload: {
       query: string
       page?: number

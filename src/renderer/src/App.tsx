@@ -14,6 +14,7 @@ import { UpdateNotice } from './components/UpdateNotice'
 import { StartupSplash } from './components/StartupSplash'
 import { AuthLoadingScreen } from './components/AuthLoadingScreen'
 import { OnboardingGuide, useOnboarding } from './components/OnboardingGuide'
+import { useWorkflowEngineStore } from './store/useWorkflowEngineStore'
 
 function App(): React.JSX.Element {
   const { isAuthenticated, checkAuth, hasHydratedAuth, isLoggingIn, authMode } = useAuthStore()
@@ -21,6 +22,10 @@ function App(): React.JSX.Element {
   const { provider, apiKey, model, setModel, setApiKey } = useAIStore()
   const { showOnboarding, completeOnboarding } = useOnboarding()
   const wasAuthenticatedRef = useRef(isAuthenticated)
+
+  useEffect(() => window.api.github.onRequestWarning?.((warning) => {
+    useWorkflowEngineStore.getState().recordGitHubWarning(warning)
+  }), [])
 
   useEffect(() => {
     if (!wasAuthenticatedRef.current && isAuthenticated) {

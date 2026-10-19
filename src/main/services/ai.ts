@@ -1,5 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { listModelsForProvider } from '../../shared/byok-models'
+import { boundAIInput } from '../../shared/agent-boundaries'
+import { fetchAI, readAIJSON, AI_REQUEST_TIMEOUT_MS } from '../lib/ai-network-boundary'
 
 export interface AIProvider {
   chat(messages: { role: string; content: string }[], context: string): Promise<string>
@@ -28,16 +30,16 @@ export class GeminiProvider implements AIProvider {
     this.apiKey = apiKey
     this.genAI = new GoogleGenerativeAI(apiKey)
     this.modelName = normalizeGeminiModel(modelName)
-    this.model = this.genAI.getGenerativeModel({ model: this.modelName })
+    this.model = this.genAI.getGenerativeModel({ model: this.modelName }, { timeout: AI_REQUEST_TIMEOUT_MS })
   }
 
   private async fetchAvailableModels(): Promise<string[]> {
     try {
-      const response = await fetch(
+      const response = await fetchAI(
         `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(this.apiKey)}`
       )
       if (!response.ok) return []
-      const payload = (await response.json()) as {
+      const payload = (await readAIJSON(response)) as {
         models?: Array<{ name?: string; supportedGenerationMethods?: string[] }>
       }
       const models = payload.models || []
@@ -118,9 +120,9 @@ export class GeminiProvider implements AIProvider {
       ].filter((m, idx, arr) => arr.indexOf(m) === idx && !attempted.has(m))
 
       let lastErrorMessage = firstMessage
-      for (const fallback of candidateModels) {
+      for (const fallback of candidateModels.slice(0, 3)) {
         try {
-          this.model = this.genAI.getGenerativeModel({ model: fallback })
+          this.model = this.genAI.getGenerativeModel({ model: fallback }, { timeout: AI_REQUEST_TIMEOUT_MS })
           this.modelName = fallback
           attempted.add(fallback)
           const fallbackChat = this.createChat(history)
@@ -177,7 +179,7 @@ export class OpenAIProvider implements AIProvider {
       if (!m || typeof m.content !== 'string' || !m.content.trim()) continue
       chatMessages.push({ role: m.role === 'user' ? 'user' : 'assistant', content: m.content })
     }
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetchAI('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${this.apiKey}`,
@@ -192,7 +194,7 @@ export class OpenAIProvider implements AIProvider {
       if (response.status === 404) throw new Error(`OpenAI model "${this.modelName}" not found. Pick a different model in Settings.`)
       throw new Error(`OpenAI request failed (${response.status}): ${body.slice(0, 300)}`)
     }
-    const payload = (await response.json()) as { choices?: Array<{ message?: { content?: string } }> }
+    const payload = (await readAIJSON(response)) as { choices?: Array<{ message?: { content?: string } }> }
     const text = payload.choices?.[0]?.message?.content
     if (!text) throw new Error('OpenAI returned an empty response. Try again.')
     return text
@@ -200,11 +202,11 @@ export class OpenAIProvider implements AIProvider {
 
   async listModels(): Promise<{ id: string; label: string }[]> {
     try {
-      const response = await fetch('https://api.openai.com/v1/models', {
+      const response = await fetchAI('https://api.openai.com/v1/models', {
         headers: { Authorization: `Bearer ${this.apiKey}` }
       })
       if (!response.ok) return OPENAI_FALLBACK_MODELS
-      const payload = (await response.json()) as { data?: Array<{ id?: string }> }
+      const payload = (await readAIJSON(response)) as { data?: Array<{ id?: string }> }
       const chatModels = (payload.data || [])
         // gpt-*, chatgpt-*, and o-series reasoning models (o1/o3/o4…); excludes
         // non-chat entries like omni-moderation-*, whisper, dall-e, embeddings.
@@ -254,7 +256,7 @@ export class AnthropicProvider implements AIProvider {
       messages: chatMessages
     }
     if (context) body.system = context
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetchAI('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'x-api-key': this.apiKey,
@@ -270,7 +272,7 @@ export class AnthropicProvider implements AIProvider {
       if (response.status === 404) throw new Error(`Anthropic model "${this.modelName}" not found. Pick a different model.`)
       throw new Error(`Anthropic request failed (${response.status}): ${text.slice(0, 300)}`)
     }
-    const payload = (await response.json()) as { content?: Array<{ type?: string; text?: string }> }
+    const payload = (await readAIJSON(response)) as { content?: Array<{ type?: string; text?: string }> }
     const textBlock = payload.content?.find((b) => b.type === 'text')
     if (!textBlock?.text) throw new Error('Anthropic returned an empty response. Try again.')
     return textBlock.text
@@ -278,14 +280,14 @@ export class AnthropicProvider implements AIProvider {
 
   async listModels(): Promise<{ id: string; label: string }[]> {
     try {
-      const response = await fetch('https://api.anthropic.com/v1/models?limit=100', {
+      const response = await fetchAI('https://api.anthropic.com/v1/models?limit=100', {
         headers: {
           'x-api-key': this.apiKey,
           'anthropic-version': '2023-06-01'
         }
       })
       if (!response.ok) return ANTHROPIC_FALLBACK_MODELS
-      const payload = (await response.json()) as { data?: Array<{ id?: string; display_name?: string }> }
+      const payload = (await readAIJSON(response)) as { data?: Array<{ id?: string; display_name?: string }> }
       const models = (payload.data || [])
         .filter((m) => m.id)
         .map((m) => ({ id: m.id as string, label: m.display_name || (m.id as string) }))
@@ -321,7 +323,7 @@ export class OpenRouterProvider implements AIProvider {
       if (!m || typeof m.content !== 'string' || !m.content.trim()) continue
       chatMessages.push({ role: m.role === 'user' ? 'user' : 'assistant', content: m.content })
     }
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    const response = await fetchAI('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${this.apiKey}`,
@@ -341,7 +343,7 @@ export class OpenRouterProvider implements AIProvider {
       }
       throw new Error(`OpenRouter request failed (${response.status}): ${body.slice(0, 300)}`)
     }
-    const payload = (await response.json()) as {
+    const payload = (await readAIJSON(response)) as {
       choices?: Array<{ message?: { content?: string } }>
     }
     const text = payload.choices?.[0]?.message?.content
@@ -353,11 +355,11 @@ export class OpenRouterProvider implements AIProvider {
 
   async listModels(): Promise<{ id: string; label: string }[]> {
     try {
-      const response = await fetch('https://openrouter.ai/api/v1/models', {
+      const response = await fetchAI('https://openrouter.ai/api/v1/models', {
         headers: { Authorization: `Bearer ${this.apiKey}` }
       })
       if (!response.ok) return []
-      const payload = (await response.json()) as { data?: Array<{ id?: string; name?: string }> }
+      const payload = (await readAIJSON(response)) as { data?: Array<{ id?: string; name?: string }> }
       return (payload.data || [])
         .filter((m) => m.id)
         .map((m) => ({ id: m.id as string, label: m.name || (m.id as string) }))
@@ -415,7 +417,15 @@ export class AIService {
         'No AI API key configured. Add your own API key in Settings (free), or sign in to use a FocusFork subscription.'
       )
     }
-    return await this.provider.chat(messages, context)
+    const bounded = boundAIInput(messages, context)
+    try {
+      const text = await this.provider.chat(bounded.messages, bounded.context)
+      if (typeof text !== 'string' || !text.trim()) throw new Error('AI provider returned an empty response. Please retry.')
+      return text
+    } catch (error) {
+      if (error instanceof Error && /^(AI |OpenAI |Anthropic |OpenRouter |Gemini )/.test(error.message)) throw error
+      throw new Error('AI provider could not complete the request. Check your connection and retry.')
+    }
   }
 
   /**

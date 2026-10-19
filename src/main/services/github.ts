@@ -1,6 +1,7 @@
 import { Octokit } from 'octokit'
 import { authService } from './auth'
 import type { IssueSearchRequest, IssueSearchResponse } from '../../shared/issue-search-types'
+import { githubWarningFromError, type GitHubRequestWarning } from '../../shared/agent-boundaries'
 
 export interface Issue {
   id: number
@@ -85,6 +86,14 @@ function resolveSearchIssueRepository(item: any): { owner: string; repo: string;
 
 export class GitHubService {
   private octokit: Octokit | null = null
+  private octokitToken: string | null = null
+  private warningListeners = new Set<(warning: GitHubRequestWarning) => void>()
+  private cooldown: GitHubRequestWarning | null = null
+
+  onRequestWarning(listener: (warning: GitHubRequestWarning) => void): () => void {
+    this.warningListeners.add(listener)
+    return () => { this.warningListeners.delete(listener) }
+  }
 
   constructor() {}
 
@@ -94,15 +103,28 @@ export class GitHubService {
       throw new Error('Not authenticated')
     }
 
-    if (!this.octokit || (this.octokit.request as any).defaults?.headers?.authorization !== `token ${token}`) {
+    if (!this.octokit || this.octokitToken !== token) {
+      this.octokitToken = token
+      this.cooldown = null
       this.octokit = new Octokit({
         auth: token,
         userAgent: 'FocusFork',
+        retry: { enabled: false },
+        throttle: { onRateLimit: () => false, onSecondaryRateLimit: () => false },
         headers: { 'X-GitHub-Api-Version': '2022-11-28' }
       })
       // Octokit core ignores constructor headers; pin the outgoing REST defaults too.
       this.octokit.request = this.octokit.request.defaults({
         headers: { 'X-GitHub-Api-Version': '2022-11-28' }
+      })
+      this.octokit.hook.before('request', () => {
+        if (this.cooldown?.retryAt && this.cooldown.retryAt > Date.now()) {
+          throw new Error(`GitHub rate limit reached. Retry in ${Math.ceil((this.cooldown.retryAt - Date.now()) / 1000)} seconds. Your local work is saved.`)
+        }
+        this.cooldown = null
+      })
+      this.octokit.hook.error('request', async (error) => {
+        throw this.normalizeGitHubError(error, 'GitHub could not complete the request. Please retry.')
       })
     }
     return this.octokit
@@ -437,12 +459,16 @@ export class GitHubService {
 
   private normalizeGitHubError(error: any, fallbackMessage: string): Error {
     const status = error?.status ?? error?.response?.status
-    const rateRemaining = error?.response?.headers?.['x-ratelimit-remaining']
+    const warning = githubWarningFromError(error)
+    if (warning) {
+      if (warning.kind === 'rate-limit') this.cooldown = warning
+      for (const listener of this.warningListeners) {
+        try { listener(warning) } catch { /* A failed UI listener must not break API recovery. */ }
+      }
+      return new Error(warning.message)
+    }
     if (status === 401) {
       return new Error('GitHub authentication expired. Please sign in again.')
-    }
-    if (status === 403 && rateRemaining === '0') {
-      return new Error('GitHub rate limit exceeded. Please wait a few minutes and retry.')
     }
     const rawMessage = error?.response?.data?.message ?? error?.message ?? fallbackMessage
     const message = typeof rawMessage === 'string' ? rawMessage : fallbackMessage

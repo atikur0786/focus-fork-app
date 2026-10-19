@@ -8,6 +8,7 @@ interface AuthAPI {
 }
 
 interface GitHubAPI {
+  onRequestWarning?: (callback: (warning: import('../../shared/agent-boundaries').GitHubRequestWarning) => void) => () => void
   search: (payload: {
     query: string
     page?: number

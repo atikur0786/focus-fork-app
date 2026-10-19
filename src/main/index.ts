@@ -18,6 +18,15 @@ import { vscodeBridge } from './vscode-bridge'
 import { gitBridge } from './git-bridge'
 import { normalizeIssueSearchPayload } from '../shared/issue-search-types'
 import { assertPersonalGitHubFork } from './lib/github-push-target'
+import { boundAIInput } from '../shared/agent-boundaries'
+
+githubService.onRequestWarning((warning) => {
+  for (const window of BrowserWindow.getAllWindows()) {
+    if (!window.isDestroyed() && !window.webContents.isDestroyed()) {
+      window.webContents.send('github:request-warning', warning)
+    }
+  }
+})
 
 gitService.setPushVerifier(async (owner, repo) => {
   try {
@@ -174,6 +183,9 @@ const runAIChat = async (
   context: string,
   model?: string
 ): Promise<string> => {
+  const bounded = boundAIInput(messages, context)
+  messages = bounded.messages
+  context = bounded.context
   const { mode } = aiConfigService.getConfig()
 
   if (mode === 'subscription') {

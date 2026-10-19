@@ -28,6 +28,10 @@ export function humanizeError(error: unknown, fallback = 'Something went wrong. 
 
   const pushBlockedAt = message.indexOf('Push blocked:')
   if (pushBlockedAt >= 0) return message.slice(pushBlockedAt)
+  for (const prefix of ['GitHub rate limit reached.', 'GitHub denied this request.', 'AI context is too large', 'AI provider ', 'AI request has no valid messages.']) {
+    const index = message.indexOf(prefix)
+    if (index >= 0) return message.slice(index)
+  }
 
   if (lower.includes('authentication expired') || lower.includes('not authenticated')) {
     return 'Your session expired. Please sign in again.'

@@ -1,12 +1,11 @@
+import { boundAIInput } from '../../../shared/agent-boundaries'
+
 export interface AiChatMessageInput {
   role: string
   content: string
 }
 
 export const AI_CHAT_MAX_MESSAGES = 14
-const MAX_MESSAGES = AI_CHAT_MAX_MESSAGES
-const MAX_MESSAGE_CHARS = 6000
-const MAX_CONTEXT_CHARS = 72000
 
 /** Merge consecutive same-role turns so providers (e.g. Gemini) accept the payload. */
 export function normalizeChatRoles(messages: AiChatMessageInput[]): AiChatMessageInput[] {
@@ -33,20 +32,9 @@ export function prepareAiChatPayload(
   messages: AiChatMessageInput[],
   context: string
 ): { messages: AiChatMessageInput[]; context: string; stats: { messageCount: number; contextChars: number; totalChars: number } } {
-  const trimmedMessages = normalizeChatRoles(
-    messages.slice(-MAX_MESSAGES).map((message) => ({
-      role: message.role,
-      content:
-        message.content.length > MAX_MESSAGE_CHARS
-          ? `${message.content.slice(0, MAX_MESSAGE_CHARS)}\n\n...[message truncated for AI request]`
-          : message.content
-    }))
-  )
-
-  const trimmedContext =
-    context.length > MAX_CONTEXT_CHARS
-      ? `${context.slice(0, MAX_CONTEXT_CHARS)}\n\n...[context truncated for AI request]`
-      : context
+  const bounded = boundAIInput(messages.slice(-AI_CHAT_MAX_MESSAGES), context)
+  const trimmedMessages = normalizeChatRoles(bounded.messages)
+  const trimmedContext = bounded.context
 
   const totalChars =
     trimmedContext.length + trimmedMessages.reduce((sum, message) => sum + message.content.length, 0)

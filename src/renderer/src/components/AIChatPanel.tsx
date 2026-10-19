@@ -438,7 +438,7 @@ export function AIChatPanel({
     const parts = [isGeneralChat ? FOCUSFORK_GENERAL_SYSTEM : FOCUSFORK_CODING_SYSTEM, context]
     if (!isGeneralChat && (issueTitle || issueBody)) {
       const issueParts = [`Issue: ${issueTitle || 'N/A'}`]
-      if (issueBody) issueParts.push(`Issue description:\n${issueBody.slice(0, 3000)}`)
+      if (issueBody) issueParts.push(`Issue description:\n${issueBody}`)
       parts.push(issueParts.join('\n'))
     }
     if (!isGeneralChat && repoPathIndex.length > 0) {

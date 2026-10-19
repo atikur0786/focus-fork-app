@@ -9,7 +9,7 @@
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint --cache .",
-    "test:unit": "node --import tsx --test tests/unit/token-manager.test.ts tests/unit/vscode-bridge.test.ts tests/unit/chat-retry.test.ts tests/unit/ai-session-limits.test.ts tests/unit/ai-chat-request.test.ts tests/unit/git-author.test.ts tests/unit/workspace-session.test.ts tests/unit/model-entitlements.test.ts tests/unit/repo-file-index.test.ts tests/unit/reviewer-agent.test.ts tests/unit/git-push-guard.test.ts",
+    "test:unit": "node --import tsx --test tests/unit/token-manager.test.ts tests/unit/vscode-bridge.test.ts tests/unit/chat-retry.test.ts tests/unit/ai-session-limits.test.ts tests/unit/ai-chat-request.test.ts tests/unit/git-author.test.ts tests/unit/workspace-session.test.ts tests/unit/model-entitlements.test.ts tests/unit/repo-file-index.test.ts tests/unit/reviewer-agent.test.ts tests/unit/git-push-guard.test.ts tests/unit/agent-boundaries.test.ts",
     "test:e2e": "playwright test",
     "test": "npm run test:unit",
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",

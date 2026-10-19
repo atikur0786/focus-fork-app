@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { appPersistStorage } from './app-persist-storage'
+import type { GitHubRequestWarning } from '../../../shared/agent-boundaries'
 
 export type WorkflowStep =
   | 'discover'
@@ -29,7 +30,7 @@ type WorkflowEvent = {
   id: string
   at: string
   step: WorkflowStep
-  type: 'transition' | 'error'
+  type: 'transition' | 'error' | 'warning'
   message: string
   metadata?: Record<string, unknown>
 }
@@ -41,6 +42,8 @@ interface WorkflowEngineState {
   stepTimestamps: Partial<Record<WorkflowStep, string>>
   lastError: { step: WorkflowStep; message: string; at: string } | null
   events: WorkflowEvent[]
+  githubWarning: GitHubRequestWarning | null
+  recordGitHubWarning: (warning: GitHubRequestWarning) => void
   bindIssue: (issueId: number, repoFullName: string) => void
   transition: (step: WorkflowStep, message: string, metadata?: Record<string, unknown>) => void
   failStep: (step: WorkflowStep, message: string, metadata?: Record<string, unknown>) => void
@@ -51,7 +54,7 @@ const stepIndex = (step: WorkflowStep): number => WORKFLOW_SEQUENCE.indexOf(step
 
 const createEvent = (
   step: WorkflowStep,
-  type: 'transition' | 'error',
+  type: 'transition' | 'error' | 'warning',
   message: string,
   metadata?: Record<string, unknown>
 ): WorkflowEvent => ({
@@ -72,6 +75,11 @@ export const useWorkflowEngineStore = create<WorkflowEngineState>()(
       stepTimestamps: {},
       lastError: null,
       events: [],
+      githubWarning: null,
+      recordGitHubWarning: (warning) => set((state) => ({
+        githubWarning: warning,
+        events: [createEvent(state.currentStep, 'warning', warning.message, { retryAt: warning.retryAt, status: warning.status }), ...state.events].slice(0, 100)
+      })),
       bindIssue: (issueId, repoFullName) => {
         const sameIssue = get().issueId === issueId
         if (sameIssue) return
@@ -97,6 +105,7 @@ export const useWorkflowEngineStore = create<WorkflowEngineState>()(
 
         set({
           currentStep: nextIdx > currentIdx ? step : state.currentStep,
+          githubWarning: null,
           stepTimestamps: {
             ...state.stepTimestamps,
             [step]: state.stepTimestamps[step] ?? now
@@ -120,6 +129,7 @@ export const useWorkflowEngineStore = create<WorkflowEngineState>()(
           currentStep: 'discover',
           stepTimestamps: {},
           lastError: null,
+          githubWarning: null,
           events: []
         })
     }),
