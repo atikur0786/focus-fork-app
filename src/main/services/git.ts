@@ -2,12 +2,58 @@ import simpleGit, { type SimpleGit } from 'simple-git'
 import { existsSync } from 'fs'
 import { join, relative } from 'path'
 import { gitAuthorEnv, type GitAuthorIdentity } from '../lib/git-author'
+import { parseGitHubPushTarget } from '../lib/github-push-target'
 
 export class GitService {
   /** GitHub token used to authenticate HTTPS push/fetch. Never logged. */
   private githubToken: string | null = null
 
-  constructor() {}
+  private pushVerifier: ((owner: string, repo: string) => Promise<void>) | null = null
+
+  constructor(private readonly createGit: typeof simpleGit = simpleGit) {}
+
+  setPushVerifier(verifier: (owner: string, repo: string) => Promise<void>): void {
+    this.pushVerifier = verifier
+  }
+
+  private async pushRemote(git: SimpleGit, branch: string): Promise<string> {
+    for (const key of [`branch.${branch}.pushRemote`, 'remote.pushDefault', `branch.${branch}.remote`]) {
+      const value = (await git.getConfig(key)).value?.trim()
+      if (value) return value
+    }
+    return 'origin'
+  }
+
+  private async verifyPushRemote(git: SimpleGit, remote: string): Promise<void> {
+    if (!this.pushVerifier) {
+      throw new Error('Push blocked: sign in to GitHub so FocusFork can verify your personal fork.')
+    }
+    let urls: string[]
+    try {
+      const output = await git.remote(['get-url', '--push', '--all', remote])
+      urls = (output || '').trim().split(/\r?\n/).filter(Boolean)
+    } catch {
+      throw new Error('Push blocked: the configured push remote could not be resolved. Set origin to your personal fork.')
+    }
+    if (urls.length !== 1) {
+      throw new Error('Push blocked: configure exactly one push URL pointing to your personal fork.')
+    }
+    const { owner, repo } = parseGitHubPushTarget(urls[0])
+    await this.pushVerifier(owner, repo)
+  }
+
+  private async verifiedPushTarget(git: SimpleGit, explicitBranch?: string) {
+    const branch = explicitBranch || (await git.branchLocal()).current
+    if (!branch || branch === 'HEAD') {
+      throw new Error('Push blocked: switch to a local branch before pushing.')
+    }
+    await git.raw(['check-ref-format', '--branch', branch])
+    const remote = await this.pushRemote(git, branch)
+    // Also check the tracking target during fallback, so an upstream block
+    // cannot be bypassed by the caller retrying with --set-upstream.
+    await this.verifyPushRemote(git, remote)
+    return { branch, remote }
+  }
 
   setGitHubToken(token: string | null): void {
     this.githubToken = token
@@ -24,10 +70,10 @@ export class GitService {
    */
   private withGitHubAuth(dir?: string): SimpleGit {
     if (!this.githubToken) {
-      return dir ? simpleGit(dir) : simpleGit()
+      return dir ? this.createGit(dir) : this.createGit()
     }
     const header = `AUTHORIZATION: basic ${Buffer.from(`x-access-token:${this.githubToken}`).toString('base64')}`
-    return simpleGit({
+    return this.createGit({
       baseDir: dir,
       config: [`http.https://github.com/.extraheader=${header}`]
     })
@@ -90,7 +136,10 @@ export class GitService {
   async push(dir: string): Promise<void> {
       try {
           const git = this.withGitHubAuth(dir);
-          await git.push();
+          const { remote, branch } = await this.verifiedPushTarget(git)
+          // An explicit refspec prevents push.default/matching or remote refspecs
+          // from publishing additional branches.
+          await git.push(remote, `HEAD:refs/heads/${branch}`);
       } catch (error) {
           console.error('Failed to push:', error);
           throw error;
@@ -114,7 +163,9 @@ export class GitService {
   async pushWithUpstream(dir: string, branch: string): Promise<void> {
       try {
           const git = this.withGitHubAuth(dir);
-          await git.push('origin', branch, { '--set-upstream': null })
+          const target = await this.verifiedPushTarget(git, branch)
+          if (target.remote !== 'origin') await this.verifyPushRemote(git, 'origin')
+          await git.push('origin', `HEAD:refs/heads/${branch}`, { '--set-upstream': null })
       } catch (error) {
           console.error('Failed to push with upstream:', error);
           throw error;

@@ -17,6 +17,19 @@ import { rendererStorageService } from './services/renderer-storage'
 import { vscodeBridge } from './vscode-bridge'
 import { gitBridge } from './git-bridge'
 import { normalizeIssueSearchPayload } from '../shared/issue-search-types'
+import { assertPersonalGitHubFork } from './lib/github-push-target'
+
+gitService.setPushVerifier(async (owner, repo) => {
+  try {
+    const user = await githubService.getUser()
+    assertPersonalGitHubFork(owner, user.login)
+    const repository = await githubService.getRepoDetails(owner, repo)
+    assertPersonalGitHubFork(owner, user.login, repository)
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith('Push blocked:')) throw error
+    throw new Error('Push blocked: could not verify fork ownership with GitHub. Check your sign-in and connection, then retry.')
+  }
+})
 
 const assertString = (value: unknown, field: string): string => {
   if (typeof value !== 'string' || !value.trim()) {

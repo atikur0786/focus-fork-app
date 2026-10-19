@@ -26,6 +26,9 @@ export function humanizeError(error: unknown, fallback = 'Something went wrong. 
 
   if (!message.trim()) return fallback
 
+  const pushBlockedAt = message.indexOf('Push blocked:')
+  if (pushBlockedAt >= 0) return message.slice(pushBlockedAt)
+
   if (lower.includes('authentication expired') || lower.includes('not authenticated')) {
     return 'Your session expired. Please sign in again.'
   }
