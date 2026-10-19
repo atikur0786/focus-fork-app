@@ -130,6 +130,7 @@ export class AuthService {
       const response = await axios.post('https://github.com/login/device/code', body.toString(), {
         headers: {
           Accept: 'application/json',
+          'X-GitHub-Api-Version': '2022-11-28',
           'Content-Type': 'application/x-www-form-urlencoded'
         }
       })
@@ -154,6 +155,7 @@ export class AuthService {
       const response = await axios.post('https://github.com/login/oauth/access_token', body.toString(), {
         headers: {
           Accept: 'application/json',
+          'X-GitHub-Api-Version': '2022-11-28',
           'Content-Type': 'application/x-www-form-urlencoded'
         }
       })

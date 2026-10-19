@@ -95,7 +95,15 @@ export class GitHubService {
     }
 
     if (!this.octokit || (this.octokit.request as any).defaults?.headers?.authorization !== `token ${token}`) {
-      this.octokit = new Octokit({ auth: token })
+      this.octokit = new Octokit({
+        auth: token,
+        userAgent: 'FocusFork',
+        headers: { 'X-GitHub-Api-Version': '2022-11-28' }
+      })
+      // Octokit core ignores constructor headers; pin the outgoing REST defaults too.
+      this.octokit.request = this.octokit.request.defaults({
+        headers: { 'X-GitHub-Api-Version': '2022-11-28' }
+      })
     }
     return this.octokit
   }
